@@ -1,11 +1,9 @@
 # 🦅 League of Animals (LOA)
 
-[![Play Live](https://img.shields.io/badge/Play%20Now-GitHub%20Pages-00f0ff?style=for-the-badge&logo=github)](https://nifftyswiggle.github.io/LOA/)
-[![Tech Stack](https://img.shields.io/badge/Made%20With-Three.js%20%7C%20WebGL-ff0055?style=for-the-badge)](https://threejs.org/)
+[![Play Now](https://img.shields.io/badge/▶_PLAY_NOW-GitHub_Pages-00f0ff?style=for-the-badge&logo=github&logoColor=black)](https://nifftyswiggle.github.io/LOA/)
+[![Three.js](https://img.shields.io/badge/Three.js-WebGL_3D-000000?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
 
 **League of Animals (LOA)** is an open-world 3D superhero action game that runs directly in your browser. Choose your hero, explore Metropolis, swing across skyscrapers, fly with repulsor jets, drive cars, defeat enemy syndicates, and collect hidden golden artifacts!
-
-👉 **[Click Here to Play the Game Live](https://nifftyswiggle.github.io/LOA/)**
 
 ---
 
