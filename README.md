@@ -4,7 +4,7 @@
 [![Tech Stack](https://img.shields.io/badge/Engine-Three.js%20%7C%20WebGL-ff0055?style=for-the-badge)](https://threejs.org/)
 [![Audio](https://img.shields.io/badge/Audio-Web%20Audio%20Synth-ffe600?style=for-the-badge)]()
 
-**League of Animals (LOA)** is an action-packed 3D open-world superhero game running entirely in the browser. Swing between towering skyscrapers, ignite supersonic repulsor thrusters, hijack and drive street vehicles, thwart syndicate incursions, and hunt down hidden Golden Bighorn artifacts across a sprawling voxel Metropolis.
+**League of Animals (LOA)** is an action-packed 3D open-world superhero game running entirely in the browser. Swing between towering skyscrapers, ignite supersonic repulsor thrusters, hijack and drive street vehicles, thwart syndicate incursions, and hunt down hidden Golden Bighorn artifacts across a sprawling Metropolis.
 
 ---
 

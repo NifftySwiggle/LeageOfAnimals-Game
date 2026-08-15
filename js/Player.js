@@ -1028,7 +1028,7 @@ export class Player {
     this.animateLimbs(dt);
   }
 
-  // Animate voxel limbs based on locomotion & combat state
+  // Animate character limbs based on locomotion & combat state
   animateLimbs(dt) {
     const horizontalSpeed = Math.hypot(this.velocity.x, this.velocity.z);
     const { torso, head, leftArm, rightArm, leftLeg, rightLeg } = this.limbs;

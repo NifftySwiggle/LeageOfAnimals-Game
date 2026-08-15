@@ -1226,7 +1226,7 @@ export class CityGenerator {
     );
   }
 
-  // Create Detailed 3D Voxel/Pixel Vehicles (Taxis, Police Cruisers, Sports Cars, SUVs - Scaled to Character)
+  // Create Detailed 3D Stylized Vehicles (Taxis, Police Cruisers, Sports Cars, SUVs - Scaled to Character)
   createDetailedCarMesh(colorHex, type = 'sedan') {
     const group = new THREE.Group();
     const paintMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.25, metalness: 0.35 });

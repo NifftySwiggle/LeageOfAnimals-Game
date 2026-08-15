@@ -47,7 +47,7 @@ export class Enemy {
     this.scene.add(this.mesh);
   }
 
-  // Build Stylized High-Quality Grounded Pixel Voxel Monsters
+  // Build Stylized High-Quality Grounded 3D Stylized Monsters
   createMonsterMesh() {
     this.mesh.position.copy(this.position);
 
