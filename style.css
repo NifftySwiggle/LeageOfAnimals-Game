@@ -1,0 +1,1568 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #05070d;
+  font-family: 'Rajdhani', sans-serif;
+  color: #ffffff;
+}
+
+#game-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* === HUD CONTAINER === */
+#hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+/* === TOP LEFT: MISSION & THREAT TRACKER === */
+.mission-card {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: rgba(13, 17, 28, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-left: 5px solid #00f0ff;
+  border-radius: 8px;
+  padding: 16px 20px;
+  width: 330px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.mission-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #00f0ff;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#mission-distance {
+  font-size: 12px;
+  color: #ffe600;
+  font-family: 'Orbitron', sans-serif;
+}
+
+#mission-objective {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.mission-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+#mission-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #ff0055, #00f0ff);
+  transition: width 0.3s ease;
+}
+
+#enemy-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ff0055;
+  letter-spacing: 1px;
+}
+
+#vortex-alert {
+  margin-top: 10px;
+  display: none;
+  background: rgba(255, 0, 85, 0.25);
+  border: 1px solid #ff0055;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #ff5588;
+  text-align: center;
+}
+
+/* === TOP RIGHT: CIRCULAR MINIMAP RADAR === */
+.minimap-container {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 2px solid #00f0ff;
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.45), inset 0 0 15px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  background: #090d16;
+  pointer-events: none;
+  z-index: 40;
+}
+
+#minimap-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* === BOTTOM LEFT: TACTICAL COMMAND DOCK === */
+.tactical-command-dock {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  background: rgba(13, 17, 28, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-left: 4px solid #00f0ff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 220px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(0, 240, 255, 0.08);
+  pointer-events: auto;
+  z-index: 50;
+}
+
+.tactical-command-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+}
+
+.tactical-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  color: #00f0ff;
+  letter-spacing: 1px;
+}
+
+.tactical-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #00f0ff;
+  box-shadow: 0 0 8px #00f0ff;
+  animation: pulse-glow 1.5s infinite alternate;
+}
+
+.tactical-btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.tactical-action-btn {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 6px;
+  padding: 7px 4px;
+  color: #ffffff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9.5px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tactical-action-btn:hover {
+  background: rgba(0, 240, 255, 0.22);
+  border-color: #00f0ff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.tactical-action-btn:active {
+  transform: scale(0.96);
+}
+
+.tactical-btn-icon {
+  font-size: 12px;
+}
+
+/* === BOTTOM MIDDLE: HERO STATUS COMMAND DECK === */
+.bottom-center-hud {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 17, 28, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-bottom: 4px solid #f472b6;
+  border-radius: 12px;
+  padding: 14px 24px;
+  width: 480px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 240, 255, 0.1);
+  pointer-events: none;
+}
+
+.hero-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.hero-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #f472b6;
+  text-shadow: 0 0 10px rgba(244, 114, 182, 0.6);
+}
+
+.speed-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 240, 255, 0.15);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+}
+
+.speed-title {
+  font-size: 11px;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+#speed-value {
+  font-size: 16px;
+  font-weight: 900;
+  color: #00f0ff;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.gauges-container {
+  display: flex;
+  gap: 16px;
+}
+
+.gauge-row {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.gauge-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  color: #cbd5e1;
+}
+
+.gauge-track {
+  width: 100%;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+  position: relative;
+}
+
+#health-bar-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #ff0055, #f472b6, #00ff88);
+  transition: width 0.15s ease-out;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.5);
+}
+
+#health-bar-fill.low-health {
+  animation: pulse-danger 0.6s infinite alternate;
+}
+
+#web-bar-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #0077ff, #00f0ff);
+  transition: width 0.1s ease-out;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.7);
+}
+
+@keyframes pulse-danger {
+  from { opacity: 0.5; filter: brightness(0.8); }
+  to { opacity: 1.0; filter: brightness(1.5); }
+}
+
+/* Combo Counter */
+#combo-counter {
+  margin-top: 10px;
+  display: none;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  text-align: center;
+  color: #ffe600;
+  text-shadow: 0 0 15px rgba(255, 230, 0, 0.8), 2px 2px #ff0055;
+  animation: combo-bounce 0.2s ease-out;
+}
+
+@keyframes combo-bounce {
+  0% { transform: scale(1.3); }
+  100% { transform: scale(1.0); }
+}
+
+/* === AAA GAME PAUSE MENU STYLES === */
+.pause-modal-container {
+  padding: 24px 32px;
+  max-width: 860px !important;
+  width: 95%;
+  background: rgba(10, 14, 25, 0.94) !important;
+  border: 2px solid #00f0ff !important;
+  box-shadow: 0 0 50px rgba(0, 240, 255, 0.35), inset 0 0 30px rgba(0, 240, 255, 0.08) !important;
+}
+
+.pause-header {
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+}
+
+.pause-top-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.pause-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pause-system-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: #ff0055;
+  background: rgba(255, 0, 85, 0.15);
+  border: 1px solid #ff0055;
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+.pause-game-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 2px;
+}
+
+.pause-esc-hint {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+.pause-esc-hint .hint-key {
+  color: #00f0ff;
+}
+
+.pause-tabs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 12px;
+}
+
+.pause-tab-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  padding: 10px 18px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 1px;
+}
+
+.pause-tab-btn:hover {
+  background: rgba(0, 240, 255, 0.18);
+  border-color: #00f0ff;
+  color: #00f0ff;
+  transform: translateY(-1px);
+}
+
+.pause-tab-btn.active {
+  background: linear-gradient(90deg, #00f0ff, #0077ff);
+  border-color: #00f0ff;
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.6);
+}
+
+.pause-tab-content {
+  display: none;
+}
+
+.pause-tab-content.active {
+  display: block;
+  animation: tab-fade 0.2s ease-out;
+}
+
+@keyframes tab-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pause-mission-box {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-left: 4px solid #00f0ff;
+  border-radius: 8px;
+  padding: 18px 24px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.pause-mission-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #00f0ff;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+}
+
+.pause-mission-headline {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 4px 0 6px 0;
+}
+
+.pause-mission-sub {
+  font-size: 12.5px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.pause-action-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.pause-primary-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 15px;
+  background: linear-gradient(90deg, #ff0055, #9900ff) !important;
+}
+
+.pause-secondary-row {
+  display: flex;
+  gap: 10px;
+}
+
+.pause-action-subbtn {
+  flex: 1;
+  font-size: 12px;
+  padding: 12px 10px;
+}
+
+.pause-exit-btn {
+  background: rgba(255, 0, 85, 0.15) !important;
+  border-color: #ff0055 !important;
+  color: #ff5588 !important;
+}
+
+.pause-exit-btn:hover {
+  background: rgba(255, 0, 85, 0.3) !important;
+  color: #ffffff !important;
+}
+
+.pause-map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  color: #00f0ff;
+  margin-bottom: 8px;
+}
+
+.pause-map-live-dot {
+  color: #00ff88;
+  font-size: 11px;
+}
+
+.tactical-map-wrapper {
+  background: #080c14;
+  border: 2px solid #00f0ff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+  margin: 0 auto;
+  max-width: 700px;
+}
+
+#tactical-map-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 540px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.setting-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 14px 18px;
+}
+
+.setting-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.setting-slider {
+  width: 100%;
+  cursor: pointer;
+  accent-color: #00f0ff;
+}
+
+.preset-btn-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.preset-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  padding: 8px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+  background: rgba(0, 240, 255, 0.2);
+}
+
+.preset-btn.active {
+  background: #00f0ff;
+  color: #000000;
+  font-weight: 900;
+  border-color: #00f0ff;
+}
+
+/* Floating Vehicle Interaction Prompt */
+.vehicle-prompt {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 17, 28, 0.9);
+  border: 2px solid #00f0ff;
+  border-radius: 8px;
+  padding: 10px 22px;
+  color: #ffffff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+  pointer-events: none;
+  z-index: 40;
+  animation: pulse-glow 1.5s infinite alternate;
+}
+
+.vehicle-prompt .prompt-key {
+  color: #00f0ff;
+  background: rgba(0, 240, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Dynamic Plus (+) Reticle Crosshair */
+#crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  transition: transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#crosshair::before {
+  content: '';
+  position: absolute;
+  top: 11px;
+  left: 0;
+  width: 24px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+  border-radius: 1px;
+  transition: background 0.1s ease, box-shadow 0.1s ease;
+}
+
+#crosshair::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 11px;
+  width: 2px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+  border-radius: 1px;
+  transition: background 0.1s ease, box-shadow 0.1s ease;
+}
+
+#crosshair.locked {
+  transform: translate(-50%, -50%) scale(1.35);
+}
+
+#crosshair.locked::before,
+#crosshair.locked::after {
+  background: #00f0ff;
+  box-shadow: 0 0 10px #00f0ff, 0 0 20px rgba(0, 240, 255, 0.8);
+}
+
+/* === MODAL SCREENS (START & GAME OVER) === */
+.modal-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(30, 10, 60, 0.92) 0%, rgba(5, 7, 13, 0.98) 100%);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(12px);
+}
+
+.modal-content {
+  background: rgba(13, 17, 28, 0.88);
+  border: 2px solid #00f0ff;
+  box-shadow: 0 0 40px rgba(153, 0, 255, 0.6), inset 0 0 25px rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+  padding: 36px 48px;
+  max-width: 680px;
+  text-align: center;
+}
+
+.game-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, #ff0055, #9900ff, #00f0ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+  text-shadow: 0 0 20px rgba(153, 0, 255, 0.4);
+}
+
+.game-subtitle {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #a0aec0;
+  margin-bottom: 24px;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 16px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 28px;
+}
+
+.control-item {
+  font-size: 14px;
+  color: #cbd5e0;
+}
+
+.control-key {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  color: #00f0ff;
+  background: rgba(0, 240, 255, 0.15);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  margin-right: 6px;
+}
+
+.menu-badge {
+  display: inline-block;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #00f0ff;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+.menu-btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 360px;
+  margin: 28px auto 0 auto;
+}
+
+.menu-btn {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 16px;
+}
+
+.secondary-btn {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  padding: 14px 28px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid #00f0ff;
+  border-radius: 8px;
+  color: #00f0ff;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+  pointer-events: auto;
+}
+
+.secondary-btn:hover {
+  background: rgba(0, 240, 255, 0.25);
+  transform: scale(1.03);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+}
+
+.primary-btn {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 16px 36px;
+  background: linear-gradient(90deg, #ff0055, #9900ff);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(255, 0, 85, 0.6);
+  transition: transform 0.15s, box-shadow 0.15s;
+  pointer-events: auto;
+}
+
+.primary-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 35px rgba(0, 240, 255, 0.8);
+}
+
+.audio-toggle-btn,
+.cam-toggle-btn {
+  position: absolute;
+  top: 24px;
+  pointer-events: auto;
+  background: rgba(13, 17, 28, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #00f0ff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+  z-index: 25;
+}
+
+.audio-toggle-btn {
+  left: 360px;
+}
+
+.cam-toggle-btn {
+  left: 470px;
+}
+
+.audio-toggle-btn:hover,
+.cam-toggle-btn:hover {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: #00f0ff;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   LEAGUE OF ANIMALS: MAIN MENU & 3D HERO PREVIEW STAGE
+   ========================================================================== */
+.main-menu-modal {
+  max-width: 960px !important;
+  width: 95%;
+  padding: 30px 36px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.main-menu-header {
+  text-align: center;
+  margin-bottom: 6px;
+  width: 100%;
+}
+
+.main-title-centered {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  margin: 0;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+}
+
+.main-subtitle-centered {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #f472b6;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.menu-split-layout {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  align-items: center;
+  width: 100%;
+}
+
+.hero-preview-stage {
+  flex: 1;
+  background: rgba(8, 12, 22, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: inset 0 0 25px rgba(0, 240, 255, 0.15), 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+.preview-header {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.preview-tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffe600;
+  letter-spacing: 2px;
+}
+
+.hero-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 2px;
+  margin: 2px 0 2px 0;
+  text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+}
+
+.hero-role {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+.canvas-3d-wrapper {
+  position: relative;
+  width: 320px;
+  height: 280px;
+  border-radius: 10px;
+  background: radial-gradient(circle at center, rgba(30, 20, 60, 0.5) 0%, rgba(4, 7, 15, 0.95) 75%);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+  margin: 6px 0;
+}
+
+#hero-preview-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+
+#hero-preview-canvas:active {
+  cursor: grabbing;
+}
+
+.preview-rotate-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  color: rgba(0, 240, 255, 0.7);
+  letter-spacing: 1px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.hero-stats-row {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+  width: 100%;
+  justify-content: center;
+}
+
+.stat-pill {
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.stat-lbl {
+  color: #94a3b8;
+  margin-right: 4px;
+}
+
+.stat-val {
+  color: #00f0ff;
+  font-weight: 800;
+}
+
+.hero-select-tabs {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.hero-tab {
+  flex: 1;
+  padding: 6px 4px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hero-tab.active {
+  background: rgba(0, 240, 255, 0.25);
+  border-color: #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+
+.hero-tab.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.menu-action-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+}
+
+.creator-credits {
+  margin-top: 24px;
+  font-size: 11px;
+  color: #64748b;
+  letter-spacing: 1px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+}
+
+.creator-link {
+  color: #00f0ff;
+  text-decoration: none;
+  font-weight: 700;
+  transition: color 0.2s;
+}
+
+.creator-link:hover {
+  color: #ffe600;
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   ACHIEVEMENTS & COLLECTIBLES MODALS
+   ========================================================================== */
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 12px;
+}
+
+.close-modal-btn {
+  background: rgba(255, 0, 85, 0.2);
+  border: 1px solid #ff0055;
+  color: #ff5588;
+  font-size: 18px;
+  font-weight: 900;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-modal-btn:hover {
+  background: #ff0055;
+  color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
+}
+
+.achievements-grid,
+.collectibles-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 6px;
+  text-align: left;
+}
+
+.achievement-card,
+.collectible-card {
+  background: rgba(13, 18, 30, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.achievement-card.unlocked,
+.collectible-card.collected {
+  border-color: #00f0ff;
+  background: rgba(0, 240, 255, 0.08);
+}
+
+.achievement-card.tier-legendary.unlocked {
+  border-color: #ffe600;
+  box-shadow: 0 0 15px rgba(255, 230, 0, 0.3);
+}
+
+.card-icon {
+  font-size: 28px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-body {
+  flex: 1;
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.card-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.tier-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tier-badge-easy { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8; }
+.tier-badge-medium { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #a855f7; }
+.tier-badge-hard { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+.tier-badge-legendary { background: rgba(255, 230, 0, 0.25); color: #ffe600; border: 1px solid #ffe600; }
+
+.card-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.card-status {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  margin-top: 6px;
+  color: #64748b;
+}
+
+.card-status.done {
+  color: #00f0ff;
+}
+
+/* Settings Stack */
+.settings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 12px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.setting-item label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #cbd5e1;
+  letter-spacing: 1px;
+}
+
+.setting-toggle-btn {
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid #00f0ff;
+  color: #00f0ff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.setting-toggle-btn:hover {
+  background: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+/* Collectibles HUD Badge */
+.collectibles-badge-row {
+  margin-top: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  display: flex;
+  gap: 6px;
+  color: #cbd5e1;
+}
+
+/* ==========================================================================
+   ACHIEVEMENT TOAST NOTIFICATIONS
+   ========================================================================== */
+.achievement-toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.achievement-toast {
+  background: rgba(10, 14, 24, 0.95);
+  border: 1px solid #00f0ff;
+  border-left: 5px solid #00f0ff;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-width: 320px;
+  max-width: 380px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 240, 255, 0.3);
+  backdrop-filter: blur(14px);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+  pointer-events: auto;
+}
+
+.achievement-toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.achievement-toast.tier-legendary {
+  border-color: #ffe600;
+  border-left-color: #ffe600;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(255, 230, 0, 0.4);
+}
+
+.toast-icon {
+  font-size: 32px;
+}
+
+.toast-body {
+  flex: 1;
+}
+
+.toast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.toast-tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  color: #ffe600;
+  letter-spacing: 1px;
+}
+
+.toast-tier {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.toast-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.toast-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.2;
+}
+
+@media (max-width: 860px) {
+  .menu-split-layout {
+    flex-direction: column;
+  }
+  .hero-preview-stage {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   INTERACTIVE KEYBIND REMAPPER STYLES
+   ========================================================================== */
+.keybind-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 15px;
+}
+
+.keybind-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px 16px;
+  transition: all 0.2s ease;
+}
+
+.keybind-row:hover {
+  border-color: #00f0ff;
+  background: rgba(0, 240, 255, 0.08);
+}
+
+.keybind-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.keybind-action-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.keybind-btn {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #00f0ff;
+  color: #00f0ff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 110px;
+  text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+.keybind-btn:hover {
+  background: rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.keybind-btn.listening {
+  background: rgba(255, 0, 85, 0.4);
+  border-color: #ff0055;
+  color: #ff5588;
+  animation: pulse-glow 0.8s infinite alternate;
+  box-shadow: 0 0 20px rgba(255, 0, 85, 0.8);
+}
+
+/* ==========================================================================
+   HOLD [M] TACTICAL SATELLITE GPS OVERLAY
+   ========================================================================== */
+.hold-map-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 95;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(5, 8, 16, 0.72);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.hold-map-frame {
+  background: rgba(13, 17, 28, 0.94);
+  border: 2px solid #00f0ff;
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 0 45px rgba(0, 240, 255, 0.45), inset 0 0 25px rgba(0, 240, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.hold-map-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+  padding-bottom: 8px;
+}
+
+.hold-map-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hold-map-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #00f0ff;
+  letter-spacing: 1px;
+}
+
+.hold-map-hint {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffe600;
+  background: rgba(255, 230, 0, 0.15);
+  border: 1px solid #ffe600;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.hold-map-coords {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+#hold-map-canvas {
+  width: 640px;
+  height: 480px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+  background: #080c14;
+  display: block;
+}
+
+.hold-map-legend {
+  display: flex;
+  gap: 16px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.hero { background: #00f0ff; box-shadow: 0 0 6px #00f0ff; }
+.legend-dot.threat { background: #ff0055; box-shadow: 0 0 6px #ff0055; }
+.legend-dot.enemy { background: #ffe600; box-shadow: 0 0 6px #ffe600; }
+.legend-dot.building { background: #3c4b64; }
+

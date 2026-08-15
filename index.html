@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOA</title>
+  <meta name="description" content="LOA (League of Animals) - Epic 3D superhero open-world game featuring Spider-Ram and Iron-Ram with flight, combat, driving, and superpowers.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23090d16' stroke='%2300f0ff' stroke-width='4'/%3E%3Ctext x='50%25' y='54%25' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E🦅%3C/text%3E%3Ctext x='50%25' y='88%25' font-family='sans-serif' font-weight='900' font-size='17' fill='%2300f0ff' text-anchor='middle' letter-spacing='1.5'%3ELOA%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <!-- 3D WebGL Canvas Container -->
+  <div id="game-container"></div>
+
+  <!-- Dynamic Reticle Crosshair -->
+  <div id="crosshair"></div>
+
+  <!-- Complete In-Game HUD -->
+  <div id="hud">
+    <!-- TOP LEFT: Mission Objectives, Collectibles & Threat Tracker -->
+    <div class="mission-card">
+      <div class="mission-title">
+        <span>CURRENT MISSION</span>
+        <span id="mission-distance">-- M</span>
+      </div>
+      <div id="mission-objective">Neutralize the Active Crime Syndicate</div>
+      <div class="mission-progress-bar">
+        <div id="mission-progress-fill"></div>
+      </div>
+      <div id="enemy-count">Zone Targets: 0 / 6 Defeated</div>
+
+      <!-- In-Game Collectibles Tracker -->
+      <div class="collectibles-badge-row">
+        <span>🏆 ARTIFACTS:</span>
+        <span id="collectibles-hud-text" style="color: #ffe600; font-weight: 800;">0 / 15</span>
+      </div>
+
+      <!-- Docked Alert Status -->
+      <div id="vortex-alert">
+        🚨 ACTIVE THREAT ZONE
+      </div>
+    </div>
+
+    <!-- TOP RIGHT: Circular Minimap Radar -->
+    <div class="minimap-container">
+      <canvas id="minimap-canvas" width="180" height="180"></canvas>
+    </div>
+
+    <!-- BOTTOM LEFT: Tactical Quick-Controls Command Deck -->
+    <div class="tactical-command-dock">
+      <div class="tactical-command-header">
+        <span class="tactical-title">TACTICAL COMMAND</span>
+        <span class="tactical-status-dot"></span>
+      </div>
+
+      <div class="tactical-btn-grid">
+        <button id="toggle-cam-btn" class="tactical-action-btn" title="Toggle 1st Person FPS / 3rd Person View (or Press V)">
+          <span class="tactical-btn-icon">🎥</span>
+          <span id="radar-cam-text">3RD VIEW</span>
+        </button>
+        <button id="toggle-audio-btn" class="tactical-action-btn" title="Toggle Synth Sound & Music">
+          <span class="tactical-btn-icon">🔊</span>
+          <span id="radar-audio-text">SOUND: ON</span>
+        </button>
+        <button id="hud-pause-btn" class="tactical-action-btn" title="Open Pause Menu & Map (ESC)">
+          <span class="tactical-btn-icon">⏸️</span>
+          <span>MENU [ESC]</span>
+        </button>
+        <button id="hud-controls-btn" class="tactical-action-btn" title="Customize Hotkeys & Controls">
+          <span class="tactical-btn-icon">🎮</span>
+          <span>HOTKEYS</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- BOTTOM MIDDLE: Hero Status Command Deck (Health + Web Fluid + Speed) -->
+    <div class="status-card bottom-center-hud">
+      <div class="hero-header-row">
+        <span id="hud-hero-name" class="hero-title">🐏 SPIDER-RAM</span>
+        <div class="speed-badge">
+          <span class="speed-title">SPEED:</span>
+          <span id="speed-value">0 MPH</span>
+        </div>
+      </div>
+
+      <div class="gauges-container">
+        <!-- Health Gauge -->
+        <div class="gauge-row">
+          <div class="gauge-label">
+            <span id="hud-health-label">SUIT INTEGRITY</span>
+            <span id="health-text">100 / 100</span>
+          </div>
+          <div class="gauge-track">
+            <div id="health-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- Energy / Fluid Gauge -->
+        <div class="gauge-row">
+          <div class="gauge-label">
+            <span id="hud-fluid-label">WEB FLUID</span>
+            <span id="web-text">100%</span>
+          </div>
+          <div class="gauge-track">
+            <div id="web-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Combo Counter -->
+      <div id="combo-counter">
+        <span id="combo-value">3x RAM STRIKE!</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Vehicle Drive Prompt Banner -->
+  <div id="vehicle-prompt" class="vehicle-prompt" style="display: none;">
+    🚗 PRESS <span class="prompt-key">[F]</span> TO DRIVE VEHICLE
+  </div>
+
+  <!-- In-Game Hold [M] Tactical Map Overlay -->
+  <div id="hold-map-overlay" class="hold-map-overlay" style="display: none;">
+    <div class="hold-map-frame">
+      <div class="hold-map-header">
+        <div class="hold-map-title-row">
+          <span class="hold-map-badge">🛰️ TACTICAL SATELLITE GPS HUD</span>
+          <span class="hold-map-hint">HOLDING [M] • RELEASE TO CLOSE</span>
+        </div>
+        <div class="hold-map-coords" id="hold-map-coords">COORDS: X: 0, Z: 0 | ALT: 30M</div>
+      </div>
+      <canvas id="hold-map-canvas" width="640" height="480"></canvas>
+      <div class="hold-map-legend">
+        <span class="legend-item"><span class="legend-dot hero"></span> HERO LOCATION</span>
+        <span class="legend-item"><span class="legend-dot threat"></span> CRIME PORTAL HOTSPOT</span>
+        <span class="legend-item"><span class="legend-dot enemy"></span> SYNDICATE HOSTILE</span>
+        <span class="legend-item"><span class="legend-dot building"></span> SKYSCRAPER</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Screen Modal -->
+  <div id="loading-screen" class="modal-screen" style="z-index: 200;">
+    <div class="modal-content" style="max-width: 480px;">
+      <h1 class="game-title" style="font-size: 28px; margin-bottom: 6px;">LEAGUE OF ANIMALS</h1>
+      <div id="loading-hero-subtitle" class="game-subtitle" style="color: #00f0ff; font-size: 13px;">ASSEMBLING EXTRAORDINARY SQUAD</div>
+      <div id="loading-quote" class="game-subtitle" style="font-size: 12px; min-height: 20px; color: #cbd5e1;">Calibrating Combat Systems...</div>
+      <div class="gauge-track" style="height: 14px; margin-top: 15px; border-color: #00f0ff;">
+        <div id="loading-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff0055, #f472b6, #00f0ff); transition: width 0.2s ease;"></div>
+      </div>
+      <div id="loading-pct" style="margin-top: 8px; font-family: 'Orbitron', sans-serif; font-size: 12px; color: #00f0ff;">0%</div>
+    </div>
+  </div>
+
+  <!-- Main Menu Modal with Interactive 3D Character Preview Stage -->
+  <div id="main-menu" class="modal-screen" style="display: none; z-index: 100;">
+    <div class="modal-content main-menu-modal">
+      <!-- Centered Main Title -->
+      <div class="main-menu-header">
+        <h1 class="game-title main-title-centered">LEAGUE OF <span style="color: #00f0ff;">ANIMALS</span></h1>
+        <div class="main-subtitle-centered">METROPOLIS HEROES • SUPERHERO OPEN-WORLD ACTION</div>
+      </div>
+
+      <div class="menu-split-layout">
+        <!-- Left Column: 3D Interactive Hero Preview Stage -->
+        <div class="hero-preview-stage">
+          <div class="preview-header">
+            <span class="preview-tag">★ HERO SELECT ★</span>
+            <h2 class="hero-name">SPIDER-RAM</h2>
+            <div class="hero-role">VANGUARD INFILTRATOR & WEB SLINGER</div>
+          </div>
+
+          <div class="canvas-3d-wrapper">
+            <canvas id="hero-preview-canvas" width="340" height="340"></canvas>
+            <div class="preview-rotate-hint">↺ DRAG OR USE BUTTONS TO ROTATE</div>
+          </div>
+
+          <div class="hero-stats-row">
+            <div class="stat-pill"><span class="stat-lbl">SPEED</span> <span class="stat-val">10/10</span></div>
+            <div class="stat-pill"><span class="stat-lbl">AGILITY</span> <span class="stat-val">10/10</span></div>
+            <div class="stat-pill"><span class="stat-lbl">BRAWL</span> <span class="stat-val">9/10</span></div>
+          </div>
+
+          <div class="hero-select-tabs">
+            <button class="hero-tab active" data-hero="spider_ram">🐏 SPIDER-RAM</button>
+            <button class="hero-tab" data-hero="iron_ram">🛡️ IRON-RAM</button>
+            <button class="hero-tab locked" title="Coming Soon" data-hero="wonder_wolf">🔒 WONDER-WOLF</button>
+          </div>
+        </div>
+
+        <!-- Right Column: Clean Actions Stack -->
+        <div class="menu-action-panel">
+          <div class="menu-btn-stack">
+            <button id="start-btn" class="primary-btn menu-btn">▶ PLAY</button>
+            <button id="achievements-btn" class="secondary-btn menu-btn">🏆 ACHIEVEMENTS & TROPHIES</button>
+            <button id="collectibles-btn" class="secondary-btn menu-btn">💎 COLLECTIBLES TRACKER</button>
+            <button id="settings-btn" class="secondary-btn menu-btn">⚙️ SETTINGS & AUDIO</button>
+            <button id="controls-btn" class="secondary-btn menu-btn">🎮 CONTROLS & HOW TO PLAY</button>
+          </div>
+
+          <div class="creator-credits">
+            CREATED BY <a href="https://nifftyswiggle.com" target="_blank" class="creator-link">NIFFTYSWIGGLE</a> • <a href="https://github.com/NifftySwiggle/" target="_blank" class="creator-link">GITHUB</a> • <a href="https://x.com/Nifftyswiggle" target="_blank" class="creator-link">X</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements Modal Screen -->
+  <div id="achievements-modal" class="modal-screen" style="display: none; z-index: 120;">
+    <div class="modal-content" style="max-width: 780px;">
+      <div class="modal-header-row">
+        <div>
+          <h2 class="game-title" style="font-size: 26px; color: #ffe600; text-align: left;">🏆 TROPHIES & ACHIEVEMENTS</h2>
+          <div class="game-subtitle" style="text-align: left; margin-bottom: 0;">UNLOCK EXTRAORDINARY FEATS ACROSS METROPOLIS</div>
+        </div>
+        <button id="close-achievements-btn" class="close-modal-btn">✕</button>
+      </div>
+
+      <div id="achievements-list" class="achievements-grid"></div>
+    </div>
+  </div>
+
+  <!-- Collectibles Modal Screen -->
+  <div id="collectibles-modal" class="modal-screen" style="display: none; z-index: 120;">
+    <div class="modal-content" style="max-width: 780px;">
+      <div class="modal-header-row">
+        <div>
+          <h2 class="game-title" style="font-size: 26px; color: #00f0ff; text-align: left;">💎 METROPOLIS ARTIFACTS</h2>
+          <div class="game-subtitle" style="text-align: left; margin-bottom: 0;">15 HIDDEN GOLDEN RAM TROPHIES (TIERED CHALLENGES)</div>
+        </div>
+        <button id="close-collectibles-btn" class="close-modal-btn">✕</button>
+      </div>
+
+      <div id="collectibles-list" class="collectibles-grid"></div>
+    </div>
+  </div>
+
+  <!-- Settings Modal Screen -->
+  <div id="settings-modal" class="modal-screen" style="display: none; z-index: 120;">
+    <div class="modal-content" style="max-width: 580px;">
+      <div class="modal-header-row">
+        <h2 class="game-title" style="font-size: 26px; color: #00f0ff;">⚙️ GAME SETTINGS</h2>
+        <button id="close-settings-btn" class="close-modal-btn">✕</button>
+      </div>
+
+      <div class="settings-stack">
+        <div class="setting-item">
+          <label>MASTER SYNTH AUDIO & SFX</label>
+          <button id="settings-audio-toggle" class="setting-toggle-btn">ENABLED (ON)</button>
+        </div>
+        <div class="setting-item">
+          <label>DEFAULT CAMERA PERSPECTIVE</label>
+          <button id="settings-cam-toggle" class="setting-toggle-btn">3RD PERSON (CINEMATIC)</button>
+        </div>
+        <div class="setting-item">
+          <label>TIME OF DAY CYCLE</label>
+          <button id="settings-tod-toggle" class="setting-toggle-btn">DAYTIME (SUNNY)</button>
+        </div>
+        <div class="setting-item">
+          <label>ATMOSPHERIC RAIN PARTICLES</label>
+          <button id="settings-rain-toggle" class="setting-toggle-btn">ENABLED</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Modal Screen (Interactive Hotkey Remapper) -->
+  <div id="controls-modal" class="modal-screen" style="display: none; z-index: 120;">
+    <div class="modal-content" style="max-width: 680px;">
+      <div class="modal-header-row">
+        <h2 class="game-title" style="font-size: 24px; color: #00f0ff;">🎮 CUSTOMIZE CONTROLS & HOTKEYS</h2>
+        <button id="close-controls-btn" class="close-modal-btn">✕</button>
+      </div>
+      <div class="game-subtitle" style="margin-bottom: 10px;">CLICK ANY BUTTON TO ASSIGN A CUSTOM KEY OR MOUSE BINDING</div>
+
+      <!-- Interactive Dynamic Keybinding Rows -->
+      <div id="controls-keybind-list" class="keybind-container">
+        <!-- Injected dynamically via InputController / main.js -->
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
+        <button id="reset-controls-btn" class="secondary-btn" style="font-size: 12px;">🔄 RESET TO DEFAULT KEYS</button>
+        <span style="font-size: 11px; color: #94a3b8;">SAVES AUTOMATICALLY</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complete AAA Game Pause Menu Modal -->
+  <div id="pause-screen" class="modal-screen" style="display: none; z-index: 150;">
+    <div class="modal-content pause-modal-container">
+      <!-- Game Pause Top Command Header -->
+      <div class="pause-header">
+        <div class="pause-top-status-bar">
+          <div class="pause-brand-row">
+            <span class="pause-system-badge">⏸️ SYSTEM PAUSED</span>
+            <span class="pause-game-title">LEAGUE OF ANIMALS</span>
+          </div>
+          <div class="pause-esc-hint">PRESS <span class="hint-key">[ESC]</span> TO RESUME GAMEPLAY</div>
+        </div>
+
+        <div class="pause-tabs">
+          <button class="pause-tab-btn active" data-tab="tab-resume">🎮 MISSION COMMAND</button>
+          <button class="pause-tab-btn" data-tab="tab-map">🗺️ TACTICAL MAP</button>
+          <button class="pause-tab-btn" data-tab="tab-guide">🕹️ HOTKEYS & CONTROLS</button>
+          <button class="pause-tab-btn" data-tab="tab-settings">⚙️ AUDIO & SETTINGS</button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Mission Command Briefing & Hero Status -->
+      <div id="tab-resume" class="pause-tab-content active">
+        <div class="pause-mission-box">
+          <div class="pause-mission-badge">ACTIVE PRIMARY MISSION</div>
+          <div id="pause-mission-title" class="pause-mission-headline">Harbor Crime Syndicate Incursion</div>
+          <div id="pause-mission-status" class="pause-mission-sub">Eliminate all active threat incursions across Metropolis to liberate the district!</div>
+        </div>
+
+        <div class="pause-action-deck">
+          <button id="resume-btn" class="primary-btn pause-primary-btn">▶ RESUME GAMEPLAY</button>
+          <div class="pause-secondary-row">
+            <button id="restart-btn" class="secondary-btn pause-action-subbtn">🔄 RESTART AT SPAWN</button>
+            <button id="pause-main-menu-btn" class="secondary-btn pause-action-subbtn pause-exit-btn">🏠 RETURN TO MAIN MENU</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Full Tactical Satellite Map -->
+      <div id="tab-map" class="pause-tab-content">
+        <div class="pause-map-header">
+          <span>METROPOLIS TACTICAL SATELLITE RADAR</span>
+          <span class="pause-map-live-dot">● LIVE SCANNING</span>
+        </div>
+        <div class="tactical-map-wrapper">
+          <canvas id="tactical-map-canvas" width="700" height="400"></canvas>
+        </div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">🔵 HERO GPS LOCATION • 🔴 ACTIVE THREAT HOTSPOT</div>
+      </div>
+
+      <!-- Tab 3: Settings Configuration -->
+      <div id="tab-settings" class="pause-tab-content">
+        <div class="settings-grid">
+          <!-- Camera View Mode -->
+          <div class="setting-item">
+            <label class="setting-label">
+              <span>CAMERA VIEW MODE</span>
+              <span id="cam-view-display" style="color: #00f0ff;">3RD PERSON</span>
+            </label>
+            <div class="preset-btn-group">
+              <button class="preset-btn active" data-cam="third">3RD PERSON</button>
+              <button class="preset-btn" data-cam="fps">1ST PERSON (FPS)</button>
+              <button class="preset-btn" data-cam="action">ACTION CAM</button>
+            </div>
+          </div>
+
+          <!-- Mouse Sensitivity -->
+          <div class="setting-item">
+            <label class="setting-label">
+              <span>MOUSE SENSITIVITY</span>
+              <span id="sens-val-display" style="color: #00f0ff;">1.0x</span>
+            </label>
+            <input type="range" id="mouse-sens-slider" min="0.4" max="2.5" step="0.1" value="1.0" class="setting-slider">
+          </div>
+
+          <!-- Invert Mouse Y -->
+          <div class="setting-item">
+            <label class="setting-label">
+              <span>INVERT PITCH (Y-AXIS)</span>
+              <input type="checkbox" id="invert-y-check" style="transform: scale(1.4); cursor: pointer;">
+            </label>
+          </div>
+
+          <!-- Web Pull Strength -->
+          <div class="setting-item">
+            <label class="setting-label">
+              <span>WEB SLINGING LIFT</span>
+              <span id="lift-val-display" style="color: #f472b6;">TURBO</span>
+            </label>
+            <div class="preset-btn-group">
+              <button class="preset-btn" data-lift="normal">STANDARD</button>
+              <button class="preset-btn active" data-lift="turbo">TURBO BOOST</button>
+            </div>
+          </div>
+
+          <!-- Time of Day -->
+          <div class="setting-item">
+            <label class="setting-label">
+              <span>TIME OF DAY</span>
+            </label>
+            <div class="preset-btn-group">
+              <button class="preset-btn" data-time="day">☀️ DAY</button>
+              <button class="preset-btn" data-time="sunset">🌇 SUNSET</button>
+              <button class="preset-btn" data-time="night">🌙 NIGHT</button>
+              <button class="preset-btn active" data-time="cycle">🔄 CYCLE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Move List & Interactive Keybind Remapper -->
+      <div id="tab-guide" class="pause-tab-content">
+        <div style="font-size: 13px; color: #00f0ff; font-family: 'Orbitron', sans-serif; margin-bottom: 6px;">CUSTOMIZE IN-GAME HOTKEYS</div>
+        <div id="pause-keybind-list" class="keybind-container">
+          <!-- Injected dynamically via main.js -->
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+          <button id="pause-reset-controls-btn" class="secondary-btn" style="font-size: 12px;">🔄 RESET TO DEFAULT KEYS</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+
+  <!-- Game Over Modal Screen -->
+  <div id="game-over-screen" class="modal-screen" style="display: none;">
+    <div class="modal-content">
+      <h1 class="game-title" style="color: #ff0055;">RAM CRUSHED!</h1>
+      <div class="game-subtitle">SUIT INTEGRITY DEPLETED</div>
+      <button id="respawn-btn" class="primary-btn">RESPAWN SPIDER-RAM</button>
+    </div>
+  </div>
+
+  <!-- Main Game Module Script -->
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
+
