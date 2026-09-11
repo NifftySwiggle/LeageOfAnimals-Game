@@ -11,6 +11,7 @@ import { CameraSystem } from './CameraSystem.js';
 import { HUD } from './HUD.js';
 import { AchievementsSystem } from './AchievementsSystem.js';
 import { CollectiblesManager } from './CollectiblesManager.js';
+import { TouchControls } from './TouchControls.js';
 
 class Game {
   constructor() {
@@ -31,6 +32,9 @@ class Game {
     this.input = new InputController(this.container);
     this.cameraSystem = new CameraSystem(this.camera);
     this.hud = new HUD();
+
+    // Mobile & Tablet Touch Controls
+    this.touch = new TouchControls(this, this.input);
 
     // City & Environment
     this.city = new CityGenerator(this.scene);
@@ -58,8 +62,13 @@ class Game {
     // Audio, UI & Pause Menu Controls
     this.setupUI();
 
-    // Window Resize
+    // Window & Viewport Resize / Orientation Change Listeners
     window.addEventListener('resize', () => this.onResize());
+    window.addEventListener('orientationchange', () => setTimeout(() => this.onResize(), 150));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => this.onResize());
+    }
+    document.addEventListener('fullscreenchange', () => this.onResize());
 
     // Start Game Loop
     this.animate = this.animate.bind(this);
@@ -184,7 +193,10 @@ class Game {
         clearInterval(loadInterval);
         setTimeout(() => {
           if (loadingScreen) loadingScreen.style.display = 'none';
-          if (mainMenu) mainMenu.style.display = 'flex';
+          if (mainMenu) {
+            mainMenu.classList.remove('hidden');
+            mainMenu.style.display = 'flex';
+          }
         }, 300);
       }
     }, 120);
@@ -208,7 +220,14 @@ class Game {
         const chosenHero = this.selectedHero || 'spider_ram';
         this.player.setCharacterType(chosenHero);
         this.hud.updateHeroDisplay(chosenHero);
-        if (mainMenu) mainMenu.style.display = 'none';
+        if (this.touch) {
+          this.touch.updateHeroDisplay(chosenHero);
+          this.touch.onGameStart();
+        }
+        if (mainMenu) {
+          mainMenu.classList.add('hidden');
+          mainMenu.style.display = 'none';
+        }
         this.requestPointerLockSafe();
       });
     }
@@ -307,6 +326,45 @@ class Game {
       });
     }
 
+    // Touch Controls Setting Handlers
+    const setTouchToggle = document.getElementById('settings-touch-toggle');
+    const updateTouchToggleUI = () => {
+      if (!this.touch) return;
+      const pref = this.touch.getPreference();
+      let label = 'AUTO (TOUCH DETECTED)';
+      if (pref === 'enabled') label = 'ENABLED (ALWAYS ON)';
+      else if (pref === 'disabled') label = 'DISABLED (OFF)';
+      if (setTouchToggle) setTouchToggle.textContent = label;
+
+      const touchViewDisplay = document.getElementById('touch-view-display');
+      if (touchViewDisplay) touchViewDisplay.textContent = pref.toUpperCase();
+
+      document.querySelectorAll('[data-touch]').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-touch') === pref);
+      });
+    };
+
+    if (setTouchToggle) {
+      updateTouchToggleUI();
+      setTouchToggle.addEventListener('click', () => {
+        if (!this.touch) return;
+        const current = this.touch.getPreference();
+        const next = current === 'auto' ? 'enabled' : (current === 'enabled' ? 'disabled' : 'auto');
+        this.touch.setPreference(next);
+        updateTouchToggleUI();
+      });
+    }
+
+    document.querySelectorAll('[data-touch]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-touch');
+        if (this.touch && mode) {
+          this.touch.setPreference(mode);
+          updateTouchToggleUI();
+        }
+      });
+    });
+
     // 3. Resume Game from Pause
     if (resumeBtn) {
       resumeBtn.addEventListener('click', () => {
@@ -317,8 +375,12 @@ class Game {
     // Return to Main Menu from Pause
     const returnToMainMenu = () => {
       this.togglePause(false);
+      if (this.touch) this.touch.onGameEnd();
       if (pauseScreen) pauseScreen.style.display = 'none';
-      if (mainMenu) mainMenu.style.display = 'flex';
+      if (mainMenu) {
+        mainMenu.classList.remove('hidden');
+        mainMenu.style.display = 'flex';
+      }
       document.exitPointerLock();
       this.player.health = this.player.maxHealth;
       this.player.webFluid = this.player.maxWebFluid;
@@ -510,9 +572,9 @@ class Game {
     if (!canvas) return;
 
     this.previewScene = new THREE.Scene();
-    this.previewCamera = new THREE.PerspectiveCamera(40, canvas.width / canvas.height, 0.1, 50);
-    this.previewCamera.position.set(0, 0.0, 3.2);
-    this.previewCamera.lookAt(0, 0.0, 0);
+    this.previewCamera = new THREE.PerspectiveCamera(36, canvas.width / canvas.height, 0.1, 50);
+    this.previewCamera.position.set(0, 0.05, 5.15);
+    this.previewCamera.lookAt(0, 0.02, 0);
 
     this.previewRenderer = new THREE.WebGLRenderer({
       canvas: canvas,
@@ -535,7 +597,7 @@ class Game {
     this.previewScene.add(rimLight);
 
     // Glowing Pedestal Disc
-    const pedGeo = new THREE.CylinderGeometry(0.9, 0.95, 0.08, 32);
+    const pedGeo = new THREE.CylinderGeometry(0.85, 0.90, 0.08, 32);
     const pedMat = new THREE.MeshStandardMaterial({
       color: 0x0f172a,
       emissive: 0x00f0ff,
@@ -544,14 +606,14 @@ class Game {
       metalness: 0.8
     });
     const pedestal = new THREE.Mesh(pedGeo, pedMat);
-    pedestal.position.set(0, -1.0, 0);
+    pedestal.position.set(0, -0.92, 0);
     this.previewScene.add(pedestal);
 
-    const ringGeo = new THREE.TorusGeometry(0.92, 0.02, 8, 32);
+    const ringGeo = new THREE.TorusGeometry(0.88, 0.02, 8, 32);
     const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
     const pedRing = new THREE.Mesh(ringGeo, ringMat);
     pedRing.rotation.x = Math.PI / 2;
-    pedRing.position.set(0, -0.96, 0);
+    pedRing.position.set(0, -0.88, 0);
     this.previewScene.add(pedRing);
 
     // 1. Spider-Ram Preview Model
@@ -621,6 +683,8 @@ class Game {
           }
           if (startBtn) startBtn.textContent = '▶ PLAY';
         }
+
+        if (this.touch) this.touch.updateHeroDisplay(heroKey);
       });
     });
 
@@ -646,13 +710,14 @@ class Game {
       }
     });
 
-    // Touch support
+    // Touch support for 3D Hero Preview
     canvas.addEventListener('touchstart', (e) => {
       if (e.touches.length > 0) {
+        e.preventDefault();
         this.isDraggingPreview = true;
         this.prevMouseX = e.touches[0].clientX;
       }
-    });
+    }, { passive: false });
 
     window.addEventListener('touchend', () => {
       this.isDraggingPreview = false;
@@ -660,11 +725,28 @@ class Game {
 
     window.addEventListener('touchmove', (e) => {
       if (this.isDraggingPreview && e.touches.length > 0) {
+        e.preventDefault();
         const deltaX = e.touches[0].clientX - this.prevMouseX;
         this.previewRotY += deltaX * 0.015;
         this.prevMouseX = e.touches[0].clientX;
       }
-    });
+    }, { passive: false });
+
+    // Quick Rotate Buttons
+    const rotLeft = document.getElementById('btn-rot-left');
+    const rotRight = document.getElementById('btn-rot-right');
+    if (rotLeft) {
+      rotLeft.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.previewRotY -= 0.6;
+      });
+    }
+    if (rotRight) {
+      rotRight.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.previewRotY += 0.6;
+      });
+    }
   }
 
   createIronRamMesh(scene) {
@@ -755,11 +837,11 @@ class Game {
     group.add(rArm);
 
     const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironGoldMat);
-    lLeg.position.set(-0.2, -0.62, 0);
+    lLeg.position.set(-0.16, -0.62, 0);
     group.add(lLeg);
 
     const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironGoldMat);
-    rLeg.position.set(0.2, -0.62, 0);
+    rLeg.position.set(0.16, -0.62, 0);
     group.add(rLeg);
 
     scene.add(group);
@@ -770,6 +852,33 @@ class Game {
     if (!this.previewRenderer || !this.previewScene || !this.previewCamera) return;
     const mainMenu = document.getElementById('main-menu');
     if (!mainMenu || mainMenu.style.display === 'none') return;
+
+    // Dynamically resize preview buffer and fit entire character for all mobile screens
+    const canvas = document.getElementById('hero-preview-canvas');
+    if (canvas) {
+      const displayW = canvas.clientWidth;
+      const displayH = canvas.clientHeight;
+      if (displayW > 0 && displayH > 0 && (canvas.width !== displayW || canvas.height !== displayH)) {
+        this.previewRenderer.setSize(displayW, displayH, false);
+        this.previewCamera.aspect = displayW / displayH;
+
+        // Auto-frame camera: ensure the hero is framed in the center,
+        // displaying the entire character (horns, suit, legs, hooves, and glowing pedestal disc)
+        const aspect = displayW / displayH;
+        const vFovRad = (this.previewCamera.fov * Math.PI) / 180;
+        const halfTan = Math.tan(vFovRad / 2); // ~0.3249 at 36 deg FOV
+        // Character + pedestal (-0.96 to 1.08) is ~2.04 units tall.
+        // On full-screen canvas, frame with ~3.2 units vertical space (~64% vertical fill)
+        const distForHeight = 3.22 / (2 * halfTan); // ~4.95 units
+        // Character horizontal span clearance
+        const distForWidth = 2.45 / (2 * halfTan * Math.min(1.2, aspect));
+        const camDist = Math.max(4.95, distForWidth);
+
+        this.previewCamera.position.set(0, 0.04, camDist);
+        this.previewCamera.lookAt(0, 0.04, 0);
+        this.previewCamera.updateProjectionMatrix();
+      }
+    }
 
     if (!this.isDraggingPreview) {
       this.previewRotY += dt * 0.7; // Gentle auto-rotation
@@ -964,9 +1073,16 @@ class Game {
   }
 
   onResize() {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(width, height, false);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    if (this.touch) {
+      this.touch.checkOrientation();
+    }
   }
 
   // Drivable Vehicles: Enter/Exit, Acceleration, Steering & Collision Physics
@@ -976,9 +1092,10 @@ class Game {
 
     if (this.player.isDriving && this.player.drivenCar) {
       const car = this.player.drivenCar;
+      if (this.touch) this.touch.setDriveVisible(true, true);
       if (promptEl) {
         promptEl.style.display = 'block';
-        promptEl.innerHTML = '🚗 <span class="prompt-key">[W/S]</span> ACCELERATE/BRAKE • <span class="prompt-key">[A/D]</span> STEER • <span class="prompt-key">[F]</span> EXIT CAR';
+        promptEl.innerHTML = '🚗 STEER WITH JOYSTICK / KEYS • TAP <span class="prompt-key">EXIT</span> OR PRESS <span class="prompt-key">[F]</span>';
       }
 
       // Exit car (or jump out)
@@ -986,6 +1103,7 @@ class Game {
         this.player.isDriving = false;
         car.isPlayerDriven = false;
         this.player.drivenCar = null;
+        if (this.touch) this.touch.setDriveVisible(false, false);
         const exitYaw = car.steerAngle !== undefined ? car.steerAngle : car.mesh.rotation.y;
         this.player.velocity.set(Math.sin(exitYaw) * 12, 16.0, Math.cos(exitYaw) * 12);
         this.player.isGrounded = false;
@@ -997,16 +1115,21 @@ class Game {
 
       car.crashCooldown = Math.max(0, (car.crashCooldown || 0) - dt);
 
-      // Driving physics
+      // Driving physics (supports both WASD keyboard and touch virtual joystick)
       const maxFwdSpeed = 46.0;
       const maxRevSpeed = -18.0;
       const accel = 42.0;
       const brake = 50.0;
       const steerRate = 2.5;
 
-      if (this.input.moveForward) {
+      const fwd = this.input.moveForward || (this.input.moveZ !== undefined && this.input.moveZ < -0.2);
+      const bwd = this.input.moveBackward || (this.input.moveZ !== undefined && this.input.moveZ > 0.2);
+      const left = this.input.moveLeft || (this.input.moveX !== undefined && this.input.moveX < -0.2);
+      const right = this.input.moveRight || (this.input.moveX !== undefined && this.input.moveX > 0.2);
+
+      if (fwd) {
         car.currentSpeed = Math.min(maxFwdSpeed, (car.currentSpeed || 0) + accel * dt);
-      } else if (this.input.moveBackward) {
+      } else if (bwd) {
         car.currentSpeed = Math.max(maxRevSpeed, (car.currentSpeed || 0) - brake * dt);
       } else {
         car.currentSpeed = (car.currentSpeed || 0) * Math.pow(0.92, dt * 60);
@@ -1014,10 +1137,10 @@ class Game {
 
       if (Math.abs(car.currentSpeed) > 0.3) {
         const steerDir = Math.sign(car.currentSpeed);
-        if (this.input.moveLeft) {
+        if (left) {
           car.steerAngle = (car.steerAngle || 0) + steerRate * dt * steerDir;
         }
-        if (this.input.moveRight) {
+        if (right) {
           car.steerAngle = (car.steerAngle || 0) - steerRate * dt * steerDir;
         }
       }
@@ -1083,9 +1206,10 @@ class Game {
       }
 
       if (nearestCar && !this.player.isSwinging && !this.player.isWallCrawling) {
+        if (this.touch) this.touch.setDriveVisible(true, false);
         if (promptEl) {
           promptEl.style.display = 'block';
-          promptEl.innerHTML = '🚗 PRESS <span class="prompt-key">[F]</span> TO DRIVE VEHICLE';
+          promptEl.innerHTML = '🚗 TAP <span class="prompt-key">DRIVE</span> OR PRESS <span class="prompt-key">[F]</span> TO DRIVE VEHICLE';
         }
 
         if (this.input.enterVehiclePressed) {
@@ -1095,8 +1219,10 @@ class Game {
           nearestCar.currentSpeed = 0;
           nearestCar.steerAngle = nearestCar.mesh.rotation.y;
           if (this.audio) this.audio.playWebZip();
+          if (this.touch) this.touch.setDriveVisible(true, true);
         }
       } else {
+        if (this.touch) this.touch.setDriveVisible(false, false);
         if (promptEl && promptEl.style.display !== 'none') {
           promptEl.style.display = 'none';
         }
@@ -1148,7 +1274,7 @@ class Game {
     const dt = Math.min(this.clock.getDelta(), 0.1);
     const elapsedTime = this.clock.getElapsedTime();
 
-    if (!this.isPaused) {
+    if (!this.isPaused && !(this.touch && this.touch.isOrientationBlocked)) {
       // 1. Camera Look Direction & Exact Crosshair Surface Reticle
       const lookDir = this.cameraSystem.getLookDirection();
       const aimOrigin = this.camera.position;

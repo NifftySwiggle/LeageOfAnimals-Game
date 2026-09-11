@@ -1,0 +1,19 @@
+{
+  "name": "league-of-animals",
+  "version": "1.0.0",
+  "description": "League of Animals (LOA) - 3D Superhero WebGL Game",
+  "type": "module",
+  "scripts": {
+    "dev": "npx -y serve . -l 3000",
+    "start": "npx -y serve . -l 3000",
+    "serve": "npx -y serve . -l 3000"
+  },
+  "keywords": [
+    "game",
+    "threejs",
+    "webgl",
+    "superhero"
+  ],
+  "author": "NifftySwiggle",
+  "license": "MIT"
+}

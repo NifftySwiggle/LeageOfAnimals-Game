@@ -41,6 +41,8 @@ export class InputController {
     this.moveRight = false;
     this.moveUp = false;
     this.moveDown = false;
+    this.moveX = 0; // Analog X axis (-1 to 1)
+    this.moveZ = 0; // Analog Z axis (-1 to 1)
 
     // Actions
     this.isSprinting = false;

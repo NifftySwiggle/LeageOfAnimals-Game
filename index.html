@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>LOA</title>
   <meta name="description" content="LOA (League of Animals) - Epic 3D superhero open-world game featuring Spider-Ram and Iron-Ram with flight, combat, driving, and superpowers.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23090d16' stroke='%2300f0ff' stroke-width='4'/%3E%3Ctext x='50%25' y='54%25' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E🦅%3C/text%3E%3Ctext x='50%25' y='88%25' font-family='sans-serif' font-weight='900' font-size='17' fill='%2300f0ff' text-anchor='middle' letter-spacing='1.5'%3ELOA%3C/text%3E%3C/svg%3E">
@@ -18,9 +18,12 @@
   <!-- Complete In-Game HUD -->
   <div id="hud">
     <!-- TOP LEFT: Mission Objectives, Collectibles & Threat Tracker -->
-    <div class="mission-card">
+    <div id="mission-card" class="mission-card">
       <div class="mission-title">
-        <span>CURRENT MISSION</span>
+        <div class="mission-title-left">
+          <span>CURRENT MISSION</span>
+          <button id="btn-minimize-mission" class="hud-minimize-btn" title="Minimize Mission Tracker">◀</button>
+        </div>
         <span id="mission-distance">-- M</span>
       </div>
       <div id="mission-objective">Neutralize the Active Crime Syndicate</div>
@@ -41,10 +44,49 @@
       </div>
     </div>
 
+    <!-- Collapsed Mission Tracker Mini Pill -->
+    <button id="mission-collapsed-pill" class="mission-collapsed-pill" style="display: none;" title="Expand Mission Tracker">
+      <span class="m-pill-icon">🎯</span>
+      <span id="m-pill-text">MISSION</span>
+      <span id="m-pill-dist" class="m-pill-dist">-- M</span>
+      <span class="m-pill-expand">▶</span>
+    </button>
+
     <!-- TOP RIGHT: Circular Minimap Radar -->
-    <div class="minimap-container">
+    <div id="minimap-container" class="minimap-container">
+      <div class="minimap-header-dock">
+        <button id="btn-minimize-radar" class="radar-minimize-btn" title="Hide Radar Minimap (Click to Collapse)" aria-label="Hide Radar Minimap">
+          <span class="radar-scanner-icon">
+            <svg class="radar-svg-disc" viewBox="0 0 24 24" width="13" height="13" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.75"/>
+              <circle cx="12" cy="12" r="5" stroke="#00f0ff" stroke-width="1" opacity="0.5"/>
+              <line x1="12" y1="12" x2="20" y2="7" stroke="#00ff88" stroke-width="1.8" stroke-linecap="round" class="radar-sweep-beam"/>
+              <circle cx="12" cy="12" r="2.2" fill="#00ff88"/>
+            </svg>
+          </span>
+          <span class="radar-btn-title">RADAR</span>
+          <span class="radar-btn-action">
+            <span class="radar-min-icon">─</span>
+            <span class="radar-min-label">HIDE</span>
+          </span>
+        </button>
+      </div>
       <canvas id="minimap-canvas" width="180" height="180"></canvas>
     </div>
+
+    <!-- Collapsed Radar Mini Tactical Pill -->
+    <button id="radar-collapsed-pill" class="radar-collapsed-pill" style="display: none;" title="Tap to Expand Radar Minimap" aria-label="Expand Radar Minimap">
+      <span class="radar-scanner-icon">
+        <svg class="radar-svg-disc" viewBox="0 0 24 24" width="13" height="13" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.75"/>
+          <circle cx="12" cy="12" r="5" stroke="#00f0ff" stroke-width="1" opacity="0.5"/>
+          <line x1="12" y1="12" x2="20" y2="7" stroke="#00ff88" stroke-width="1.8" stroke-linecap="round" class="radar-sweep-beam"/>
+          <circle cx="12" cy="12" r="2.2" fill="#00ff88"/>
+        </svg>
+      </span>
+      <span class="radar-collapsed-text">RADAR</span>
+      <span class="radar-expand-badge">EXPAND ▴</span>
+    </button>
 
     <!-- BOTTOM LEFT: Tactical Quick-Controls Command Deck -->
     <div class="tactical-command-dock">
@@ -152,27 +194,52 @@
     </div>
   </div>
 
-  <!-- Main Menu Modal with Interactive 3D Character Preview Stage -->
-  <div id="main-menu" class="modal-screen" style="display: none; z-index: 100;">
-    <div class="modal-content main-menu-modal">
-      <!-- Centered Main Title -->
-      <div class="main-menu-header">
-        <h1 class="game-title main-title-centered">LEAGUE OF <span style="color: #00f0ff;">ANIMALS</span></h1>
-        <div class="main-subtitle-centered">METROPOLIS HEROES • SUPERHERO OPEN-WORLD ACTION</div>
-      </div>
+  <!-- Full-Canvas HUD Main Menu with Fullscreen 3D Character Viewport -->
+  <div id="main-menu" class="main-menu-hud-screen hidden" style="display: none; z-index: 100;">
+    <!-- Fullscreen 3D Character Viewport Canvas -->
+    <canvas id="hero-preview-canvas"></canvas>
 
-      <div class="menu-split-layout">
-        <!-- Left Column: 3D Interactive Hero Preview Stage -->
-        <div class="hero-preview-stage">
-          <div class="preview-header">
+    <!-- Atmospheric Sci-Fi Vignette Overlay -->
+    <div class="menu-hud-backdrop"></div>
+
+    <!-- HUD Overlay Layer -->
+    <div class="main-menu-hud-layer">
+      <!-- TOP HUD HEADER -->
+      <header class="menu-hud-header">
+        <div class="menu-hud-title-wrap">
+          <div class="menu-title-brand-row">
+            <h1 class="game-title menu-hud-main-title">
+              <span class="title-primary">LEAGUE OF</span>
+              <span class="title-accent">ANIMALS</span>
+            </h1>
+            <span class="title-brand-pill">LOA</span>
+          </div>
+          <div class="menu-hud-subrow">
+            <span class="menu-hud-badge">★ NOMAD COMMAND HQ ★</span>
+            <span class="subrow-separator">•</span>
+            <span class="menu-hud-subtitle">NOMAD HEROES • OPEN-WORLD ACTION</span>
+          </div>
+        </div>
+        <div class="menu-hud-status-badge">
+          <span class="status-pulse-dot"></span>
+          <span class="status-badge-text">STATUS: DEPLOY READY</span>
+        </div>
+      </header>
+
+      <!-- MIDDLE HUD BODY: Left Dock (Hero Select & Stats), Center (Spacious 3D Hero Viewport), Right Dock (Actions) -->
+      <div class="menu-hud-body">
+        <!-- LEFT HUD DOCK: Hero Dossier, Tabs & Specs -->
+        <aside class="menu-hud-dock dock-left">
+          <div class="dock-header">
             <span class="preview-tag">★ HERO SELECT ★</span>
             <h2 class="hero-name">SPIDER-RAM</h2>
             <div class="hero-role">VANGUARD INFILTRATOR & WEB SLINGER</div>
           </div>
 
-          <div class="canvas-3d-wrapper">
-            <canvas id="hero-preview-canvas" width="340" height="340"></canvas>
-            <div class="preview-rotate-hint">↺ DRAG OR USE BUTTONS TO ROTATE</div>
+          <div class="hero-select-tabs">
+            <button class="hero-tab active" data-hero="spider_ram">🐏 SPIDER-RAM</button>
+            <button class="hero-tab" data-hero="iron_ram">🛡️ IRON-RAM</button>
+            <button class="hero-tab locked" title="Coming Soon" data-hero="wonder_wolf">🔒 WONDER-WOLF</button>
           </div>
 
           <div class="hero-stats-row">
@@ -181,28 +248,45 @@
             <div class="stat-pill"><span class="stat-lbl">BRAWL</span> <span class="stat-val">9/10</span></div>
           </div>
 
-          <div class="hero-select-tabs">
-            <button class="hero-tab active" data-hero="spider_ram">🐏 SPIDER-RAM</button>
-            <button class="hero-tab" data-hero="iron_ram">🛡️ IRON-RAM</button>
-            <button class="hero-tab locked" title="Coming Soon" data-hero="wonder_wolf">🔒 WONDER-WOLF</button>
+          <div class="hero-rotate-ctrls">
+            <button id="btn-rot-left" class="hero-rot-btn" title="Rotate Left">◀</button>
+            <span class="preview-rotate-hint">↺ DRAG CANVAS TO ROTATE</span>
+            <button id="btn-rot-right" class="hero-rot-btn" title="Rotate Right">▶</button>
           </div>
-        </div>
+        </aside>
 
-        <!-- Right Column: Clean Actions Stack -->
-        <div class="menu-action-panel">
+        <!-- CENTER VIEWPORT: Wide open window showcasing the 3D Hero on glowing pedestal -->
+        <div class="menu-hud-hero-stage"></div>
+
+        <!-- RIGHT HUD DOCK: Action Buttons Stack -->
+        <aside class="menu-hud-dock dock-right">
+          <div class="dock-header right-align">
+            <span class="preview-tag" style="color: #00f0ff;">★ MISSION CONTROL ★</span>
+            <div class="dock-subhead">TACTICAL OPERATIONS</div>
+          </div>
+
           <div class="menu-btn-stack">
-            <button id="start-btn" class="primary-btn menu-btn">▶ PLAY</button>
+            <button id="start-btn" class="primary-btn menu-btn deploy-hero-btn">▶ PLAY</button>
             <button id="achievements-btn" class="secondary-btn menu-btn">🏆 ACHIEVEMENTS & TROPHIES</button>
             <button id="collectibles-btn" class="secondary-btn menu-btn">💎 COLLECTIBLES TRACKER</button>
             <button id="settings-btn" class="secondary-btn menu-btn">⚙️ SETTINGS & AUDIO</button>
             <button id="controls-btn" class="secondary-btn menu-btn">🎮 CONTROLS & HOW TO PLAY</button>
           </div>
-
-          <div class="creator-credits">
-            CREATED BY <a href="https://nifftyswiggle.com" target="_blank" class="creator-link">NIFFTYSWIGGLE</a> • <a href="https://github.com/NifftySwiggle/" target="_blank" class="creator-link">GITHUB</a> • <a href="https://x.com/Nifftyswiggle" target="_blank" class="creator-link">X</a>
-          </div>
-        </div>
+        </aside>
       </div>
+
+      <!-- BOTTOM HUD FOOTER -->
+      <footer class="menu-hud-footer">
+        <div class="hud-footer-tag">
+          <span class="hud-tag-icon">⚡</span> SUIT INTEGRITY OPTIMAL
+        </div>
+        <div class="creator-credits">
+          CREATED BY <a href="https://nifftyswiggle.com" target="_blank" class="creator-link">NIFFTYSWIGGLE</a> • <a href="https://github.com/NifftySwiggle/" target="_blank" class="creator-link">GITHUB</a> • <a href="https://x.com/Nifftyswiggle" target="_blank" class="creator-link">X</a>
+        </div>
+        <div class="hud-footer-hint">
+          DRAG ANYWHERE TO INSPECT • READY FOR PATROL
+        </div>
+      </footer>
     </div>
   </div>
 
@@ -260,6 +344,10 @@
         <div class="setting-item">
           <label>ATMOSPHERIC RAIN PARTICLES</label>
           <button id="settings-rain-toggle" class="setting-toggle-btn">ENABLED</button>
+        </div>
+        <div class="setting-item">
+          <label>ON-SCREEN TOUCH CONTROLS</label>
+          <button id="settings-touch-toggle" class="setting-toggle-btn">AUTO (TOUCH DETECTED)</button>
         </div>
       </div>
     </div>
@@ -393,6 +481,19 @@
               <button class="preset-btn active" data-time="cycle">🔄 CYCLE</button>
             </div>
           </div>
+
+          <!-- On-Screen Touch Controls -->
+          <div class="setting-item">
+            <label class="setting-label">
+              <span>ON-SCREEN TOUCH CONTROLS</span>
+              <span id="touch-view-display" style="color: #00f0ff;">AUTO</span>
+            </label>
+            <div class="preset-btn-group">
+              <button class="preset-btn active" data-touch="auto">AUTO</button>
+              <button class="preset-btn" data-touch="on">ON</button>
+              <button class="preset-btn" data-touch="off">OFF</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -406,8 +507,6 @@
           <button id="pause-reset-controls-btn" class="secondary-btn" style="font-size: 12px;">🔄 RESET TO DEFAULT KEYS</button>
         </div>
       </div>
-    </div>
-  </div>
     </div>
   </div>
 

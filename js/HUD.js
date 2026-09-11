@@ -15,6 +15,103 @@ export class HUD {
     this.minimapCanvas = document.getElementById('minimap-canvas');
     this.minimapCtx = this.minimapCanvas ? this.minimapCanvas.getContext('2d') : null;
     this.minimapRange = 220; // World unit visibility radius on minimap
+
+    // Minimization Controls
+    this.missionCard = document.getElementById('mission-card');
+    this.btnMinimizeMission = document.getElementById('btn-minimize-mission');
+    this.missionCollapsedPill = document.getElementById('mission-collapsed-pill');
+    this.missionCollapsedDist = document.getElementById('m-pill-dist');
+    this.minimapContainer = document.getElementById('minimap-container');
+    this.btnMinimizeRadar = document.getElementById('btn-minimize-radar');
+    this.radarCollapsedPill = document.getElementById('radar-collapsed-pill');
+
+    this.initMinimization();
+  }
+
+  initMinimization() {
+    this.isMissionMinimized = localStorage.getItem('loa_mission_minimized') === 'true';
+    this.isRadarMinimized = localStorage.getItem('loa_radar_minimized') === 'true';
+
+    this.applyMissionMinimizedState();
+    this.applyRadarMinimizedState();
+
+    if (this.btnMinimizeMission) {
+      this.btnMinimizeMission.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setMissionMinimized(true);
+      });
+    }
+
+    if (this.missionCollapsedPill) {
+      this.missionCollapsedPill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setMissionMinimized(false);
+      });
+    }
+
+    if (this.btnMinimizeRadar) {
+      this.btnMinimizeRadar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setRadarMinimized(true);
+      });
+    }
+
+    const minimapHeader = document.querySelector('.minimap-header-dock');
+    if (minimapHeader) {
+      minimapHeader.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setRadarMinimized(true);
+      });
+    }
+
+    if (this.radarCollapsedPill) {
+      this.radarCollapsedPill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setRadarMinimized(false);
+      });
+    }
+  }
+
+  setMissionMinimized(minimized) {
+    this.isMissionMinimized = minimized;
+    localStorage.setItem('loa_mission_minimized', minimized ? 'true' : 'false');
+    this.applyMissionMinimizedState();
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(minimized ? 20 : [15, 25]); } catch (e) {}
+    }
+    if (window.audioSystem && window.audioSystem.playRadarToggle) {
+      window.audioSystem.playRadarToggle(!minimized);
+    }
+  }
+
+  applyMissionMinimizedState() {
+    if (this.missionCard) {
+      this.missionCard.classList.toggle('minimized', this.isMissionMinimized);
+    }
+    if (this.missionCollapsedPill) {
+      this.missionCollapsedPill.style.display = this.isMissionMinimized ? 'flex' : 'none';
+    }
+  }
+
+  setRadarMinimized(minimized) {
+    this.isRadarMinimized = minimized;
+    localStorage.setItem('loa_radar_minimized', minimized ? 'true' : 'false');
+    this.applyRadarMinimizedState();
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(minimized ? 20 : [15, 25]); } catch (e) {}
+    }
+    if (window.audioSystem && window.audioSystem.playRadarToggle) {
+      window.audioSystem.playRadarToggle(!minimized);
+    }
+  }
+
+  applyRadarMinimizedState() {
+    if (this.minimapContainer) {
+      this.minimapContainer.classList.toggle('minimized', this.isRadarMinimized);
+    }
+    if (this.radarCollapsedPill) {
+      this.radarCollapsedPill.style.display = this.isRadarMinimized ? 'flex' : 'none';
+    }
   }
 
   updateHeroDisplay(characterType) {
@@ -77,8 +174,12 @@ export class HUD {
       const distElem = document.getElementById('mission-distance');
       const progFill = document.getElementById('mission-progress-fill');
 
+      const distStr = mission.isComplete ? 'CLEARED' : `${distToZone}m`;
       if (distElem) {
-        distElem.textContent = mission.isComplete ? 'CLEARED' : `${distToZone}m`;
+        distElem.textContent = distStr;
+      }
+      if (this.missionCollapsedDist) {
+        this.missionCollapsedDist.textContent = distStr;
       }
 
       if (progFill) {
@@ -131,6 +232,7 @@ export class HUD {
   }
 
   renderMinimap(player, portalManager, city) {
+    if (this.isRadarMinimized) return;
     if (!this.minimapCtx || !this.minimapCanvas) return;
     const ctx = this.minimapCtx;
     const w = this.minimapCanvas.width;

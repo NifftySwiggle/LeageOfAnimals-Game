@@ -243,30 +243,30 @@ export class Player {
     this.limbs.rightArm = rightArm;
     this.limbs.rightHand = rightHand;
 
-    // Left Leg (Red thigh, Blue boot with Hoof Sole - Bottom precisely flush at -0.95)
+    // Left Leg (Red thigh, Blue boot with Hoof Sole - Natural centered athletic stance)
     const leftLeg = new THREE.Group();
-    leftLeg.position.set(-0.2, -0.31, 0);
-    const lThigh = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.34, 0.24), redMat); // RED Thigh
+    leftLeg.position.set(-0.15, -0.31, 0);
+    const lThigh = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.34, 0.26), redMat); // RED Thigh
     lThigh.position.set(0, -0.17, 0);
-    const lBoot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.26, 0.26), blueMat); // BLUE Boot
-    lBoot.position.set(0, -0.46, 0.02);
-    const lHoofSole = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.08, 0.28), hoofMat);
-    lHoofSole.position.set(0, -0.60, 0.02);
+    const lBoot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.26, 0.28), blueMat); // BLUE Boot
+    lBoot.position.set(0, -0.46, 0);
+    const lHoofSole = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.08, 0.30), hoofMat);
+    lHoofSole.position.set(0, -0.60, 0);
     leftLeg.add(lThigh);
     leftLeg.add(lBoot);
     leftLeg.add(lHoofSole);
     torsoGroup.add(leftLeg);
     this.limbs.leftLeg = leftLeg;
 
-    // Right Leg (Red thigh, Blue boot with Hoof Sole - Bottom precisely flush at -0.95)
+    // Right Leg (Red thigh, Blue boot with Hoof Sole - Natural centered athletic stance)
     const rightLeg = new THREE.Group();
-    rightLeg.position.set(0.2, -0.31, 0);
-    const rThigh = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.34, 0.24), redMat); // RED Thigh
+    rightLeg.position.set(0.15, -0.31, 0);
+    const rThigh = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.34, 0.26), redMat); // RED Thigh
     rThigh.position.set(0, -0.17, 0);
-    const rBoot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.26, 0.26), blueMat); // BLUE Boot
-    rBoot.position.set(0, -0.46, 0.02);
-    const rHoofSole = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.08, 0.28), hoofMat);
-    rHoofSole.position.set(0, -0.60, 0.02);
+    const rBoot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.26, 0.28), blueMat); // BLUE Boot
+    rBoot.position.set(0, -0.46, 0);
+    const rHoofSole = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.08, 0.30), hoofMat);
+    rHoofSole.position.set(0, -0.60, 0);
     rightLeg.add(rThigh);
     rightLeg.add(rBoot);
     rightLeg.add(rHoofSole);
@@ -392,7 +392,7 @@ export class Player {
 
     // Left Leg with Boot Jet Thruster
     const leftLeg = new THREE.Group();
-    leftLeg.position.set(-0.2, -0.31, 0);
+    leftLeg.position.set(-0.16, -0.31, 0);
     const lLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironGoldMat);
     lLegMesh.position.set(0, -0.32, 0);
     const lThruster = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.02, 8), arcCoreMat);
@@ -405,7 +405,7 @@ export class Player {
 
     // Right Leg with Boot Jet Thruster
     const rightLeg = new THREE.Group();
-    rightLeg.position.set(0.2, -0.31, 0);
+    rightLeg.position.set(0.16, -0.31, 0);
     const rLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironGoldMat);
     rLegMesh.position.set(0, -0.32, 0);
     const rThruster = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.02, 8), arcCoreMat);
@@ -705,14 +705,19 @@ export class Player {
     const moveDir = new THREE.Vector3();
     const camYaw = input.yaw;
 
-    // Convert WASD into world direction relative to camera angle
-    if (input.moveForward) moveDir.z -= 1;
-    if (input.moveBackward) moveDir.z += 1;
-    if (input.moveLeft) moveDir.x -= 1;
-    if (input.moveRight) moveDir.x += 1;
+    // Convert WASD or analog joystick into world direction relative to camera angle
+    if (input.moveX !== undefined && (Math.abs(input.moveX) > 0.05 || Math.abs(input.moveZ) > 0.05)) {
+      moveDir.x = input.moveX;
+      moveDir.z = input.moveZ;
+    } else {
+      if (input.moveForward) moveDir.z -= 1;
+      if (input.moveBackward) moveDir.z += 1;
+      if (input.moveLeft) moveDir.x -= 1;
+      if (input.moveRight) moveDir.x += 1;
+    }
 
     if (moveDir.lengthSq() > 0) {
-      moveDir.normalize();
+      if (moveDir.lengthSq() > 1.0) moveDir.normalize();
       moveDir.applyEuler(new THREE.Euler(0, camYaw, 0));
     }
 
@@ -731,12 +736,17 @@ export class Player {
         const flySpeed = input.isSprinting ? 44.0 : 24.0;
         const flightDir = new THREE.Vector3();
 
-        if (input.moveForward) flightDir.add(cameraDir);
-        if (input.moveBackward) flightDir.sub(cameraDir);
+        const fwd = input.moveForward || (input.moveZ !== undefined && input.moveZ < -0.2);
+        const bwd = input.moveBackward || (input.moveZ !== undefined && input.moveZ > 0.2);
+        const left = input.moveLeft || (input.moveX !== undefined && input.moveX < -0.2);
+        const right = input.moveRight || (input.moveX !== undefined && input.moveX > 0.2);
+
+        if (fwd) flightDir.add(cameraDir);
+        if (bwd) flightDir.sub(cameraDir);
 
         const rightDir = new THREE.Vector3(-cameraDir.z, 0, cameraDir.x).normalize();
-        if (input.moveRight) flightDir.add(rightDir);
-        if (input.moveLeft) flightDir.sub(rightDir);
+        if (right) flightDir.add(rightDir);
+        if (left) flightDir.sub(rightDir);
 
         if (input.isJumping) flightDir.y += 0.85;
         if (input.wallCrawlToggle) flightDir.y -= 0.85;
@@ -1040,6 +1050,12 @@ export class Player {
     rightArm.rotation.set(0, 0, 0);
     leftLeg.rotation.set(0, 0, 0);
     rightLeg.rotation.set(0, 0, 0);
+    const legX = this.characterType === 'iron_ram' ? 0.16 : 0.15;
+    const armX = this.characterType === 'iron_ram' ? 0.52 : 0.50;
+    leftLeg.position.set(-legX, -0.31, 0);
+    rightLeg.position.set(legX, -0.31, 0);
+    leftArm.position.set(-armX, 0.38, 0);
+    rightArm.position.set(armX, 0.38, 0);
     torso.rotation.set(0, 0, 0);
     head.rotation.set(0, 0, 0);
 
@@ -1147,8 +1163,8 @@ export class Player {
       // Position limbs forward so trotters plant directly against building bricks
       leftArm.position.set(-0.52, 0.42, 0.14);
       rightArm.position.set(0.52, 0.42, 0.14);
-      leftLeg.position.set(-0.24, -0.36, 0.1);
-      rightLeg.position.set(0.24, -0.36, 0.1);
+      leftLeg.position.set(-0.18, -0.36, 0.1);
+      rightLeg.position.set(0.18, -0.36, 0.1);
 
       if (isMovingOnWall) {
         const crawlCycle = Math.sin(this.animTime * 15);

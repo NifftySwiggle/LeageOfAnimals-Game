@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,700;0,800;1,800;1,900&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700;800&display=swap');
 
 * {
   box-sizing: border-box;
@@ -10,10 +10,19 @@
 body, html {
   width: 100%;
   height: 100%;
+  height: 100dvh;
+  position: fixed;
+  top: 0;
+  left: 0;
   overflow: hidden;
   background-color: #05070d;
   font-family: 'Rajdhani', sans-serif;
   color: #ffffff;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
 }
 
 #game-container {
@@ -22,7 +31,9 @@ body, html {
   left: 0;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   z-index: 1;
+  overflow: hidden;
 }
 
 /* === HUD CONTAINER === */
@@ -50,10 +61,106 @@ body, html {
   border: 1px solid rgba(0, 240, 255, 0.4);
   border-left: 5px solid #00f0ff;
   border-radius: 8px;
-  padding: 16px 20px;
-  width: 330px;
+  padding: clamp(10px, 1.8vh, 16px) clamp(12px, 1.8vw, 20px);
+  width: clamp(200px, 24vw, 330px);
+  max-width: 32vw;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
   pointer-events: none;
+  z-index: 40;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.mission-card.minimized {
+  opacity: 0;
+  transform: translateX(-20px) scale(0.95);
+  pointer-events: none !important;
+  display: none !important;
+}
+
+.mission-title-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-minimize-btn {
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #00f0ff;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+}
+
+.hud-minimize-btn:hover {
+  background: rgba(0, 240, 255, 0.35);
+  border-color: #00f0ff;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+}
+
+.hud-minimize-btn:active {
+  transform: scale(0.92);
+}
+
+/* Collapsed Mission Tracker Mini Pill */
+.mission-collapsed-pill {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: rgba(13, 17, 28, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(0, 240, 255, 0.5);
+  border-left: 4px solid #00f0ff;
+  border-radius: 20px;
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 42;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 0 12px rgba(0, 240, 255, 0.25);
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.mission-collapsed-pill:hover {
+  background: rgba(18, 26, 46, 0.95);
+  border-color: #00f0ff;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.mission-collapsed-pill:active {
+  transform: scale(0.96);
+}
+
+.m-pill-icon {
+  font-size: 13px;
+}
+
+.m-pill-dist {
+  color: #ffe600;
+  font-size: 10.5px;
+}
+
+.m-pill-expand {
+  color: #00f0ff;
+  font-size: 10px;
+  margin-left: 2px;
 }
 
 .mission-title {
@@ -125,15 +232,209 @@ body, html {
   position: absolute;
   top: 24px;
   right: 24px;
-  width: 180px;
-  height: 180px;
+  width: clamp(90px, 14vw, 180px);
+  height: clamp(90px, 14vw, 180px);
   border-radius: 50%;
   border: 2px solid #00f0ff;
   box-shadow: 0 0 24px rgba(0, 240, 255, 0.45), inset 0 0 15px rgba(0, 0, 0, 0.85);
-  overflow: hidden;
+  overflow: visible !important; /* Allows tactical crown control button to sit cleanly on top rim */
   background: #090d16;
-  pointer-events: none;
+  pointer-events: auto;
   z-index: 40;
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.minimap-container.minimized {
+  opacity: 0;
+  transform: scale(0.6) translate(40px, -40px);
+  pointer-events: none !important;
+  display: none !important;
+}
+
+#minimap-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* Tactical Minimap Header & Hide Button Pedestal Dock */
+.minimap-header-dock,
+.minimap-control-dock {
+  position: absolute;
+  bottom: -13px; /* Sits cleanly as a tactical pedestal at the bottom rim */
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  z-index: 46;
+  pointer-events: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.radar-minimize-btn {
+  background: linear-gradient(180deg, rgba(14, 22, 42, 0.96) 0%, rgba(6, 11, 22, 0.98) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(0, 240, 255, 0.85);
+  /* Precision sci-fi chamfered hexagon/octagon edge */
+  clip-path: polygon(5px 0%, calc(100% - 5px) 0%, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0% calc(100% - 5px), 0% 5px);
+  color: #00f0ff;
+  font-family: 'Orbitron', 'Chakra Petch', sans-serif;
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  pointer-events: auto;
+  white-space: nowrap;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.45), 0 4px 14px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 25px;
+}
+
+.radar-minimize-btn:hover {
+  background: linear-gradient(180deg, rgba(22, 38, 72, 0.98) 0%, rgba(10, 20, 40, 0.98) 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.85), 0 6px 18px rgba(0, 0, 0, 0.9);
+}
+
+.radar-minimize-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+/* Animated SVG Radar Scanner Icon */
+.radar-scanner-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.radar-svg-disc {
+  display: block;
+}
+
+@keyframes radarBeamRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.radar-sweep-beam {
+  transform-origin: 12px 12px;
+  animation: radarBeamRotate 2.2s linear infinite;
+}
+
+.radar-btn-title {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #e0f2fe;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.5);
+}
+
+.radar-btn-action {
+  background: rgba(0, 240, 255, 0.2);
+  border: 1px solid rgba(0, 240, 255, 0.6);
+  border-radius: 12px;
+  padding: 1.5px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 7.5px;
+  font-weight: 900;
+  color: #00f0ff;
+  letter-spacing: 0.8px;
+  transition: all 0.2s ease;
+}
+
+.radar-minimize-btn:hover .radar-btn-action {
+  background: rgba(0, 240, 255, 0.45);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+}
+
+.radar-min-icon {
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.radar-min-label {
+  font-size: 7.5px;
+}
+
+/* Collapsed Radar Mini Tactical Pill */
+.radar-collapsed-pill {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: rgba(13, 17, 28, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid #00f0ff;
+  border-radius: 24px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #00f0ff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 42;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 240, 255, 0.4);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  touch-action: manipulation;
+}
+
+.radar-pulse-ring {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00ff88;
+  box-shadow: 0 0 8px #00ff88;
+  animation: radarLivePing 1.8s infinite ease-out;
+}
+
+@keyframes radarLivePing {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.8); }
+  70% { transform: scale(1.2); box-shadow: 0 0 0 8px rgba(0, 255, 136, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+}
+
+.radar-collapsed-pill:hover {
+  background: rgba(20, 30, 52, 0.96);
+  border-color: #00f0ff;
+  box-shadow: 0 0 22px rgba(0, 240, 255, 0.7);
+  transform: translateY(-2px);
+}
+
+.radar-collapsed-pill:active {
+  transform: scale(0.95);
+}
+
+.radar-expand-badge {
+  font-size: 9px;
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  padding: 2px 7px;
+  border-radius: 10px;
+  color: #ffe600;
+  margin-left: 2px;
 }
 
 #minimap-canvas {
@@ -230,15 +531,18 @@ body, html {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(13, 17, 28, 0.88);
+  background: rgba(13, 17, 28, 0.9);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 240, 255, 0.35);
   border-bottom: 4px solid #f472b6;
   border-radius: 12px;
-  padding: 14px 24px;
-  width: 480px;
+  padding: 12px 22px;
+  width: clamp(260px, 34vw, 480px);
+  max-width: calc(100vw - 320px);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 240, 255, 0.1);
   pointer-events: none;
+  z-index: 60;
+  transition: width 0.2s ease, max-width 0.2s ease, padding 0.2s ease;
 }
 
 .hero-header-row {
@@ -887,73 +1191,268 @@ body, html {
 }
 
 /* ==========================================================================
-   LEAGUE OF ANIMALS: MAIN MENU & 3D HERO PREVIEW STAGE
+   LEAGUE OF ANIMALS: FULL-CANVAS HUD MAIN MENU & 3D HERO VIEWPORT
    ========================================================================== */
-.main-menu-modal {
-  max-width: 960px !important;
-  width: 95%;
-  padding: 30px 36px !important;
+.main-menu-hud-screen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #040711 !important;
+  overflow: hidden !important;
+  z-index: 100 !important;
+  display: flex;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+
+.main-menu-hud-screen.hidden,
+#main-menu.hidden,
+#main-menu[style*="display: none"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+#hero-preview-canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  z-index: 1 !important;
+  pointer-events: auto !important;
+  cursor: grab !important;
+}
+
+#hero-preview-canvas:active {
+  cursor: grabbing !important;
+}
+
+.menu-hud-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.04) 0%, rgba(13, 20, 42, 0.35) 45%, rgba(4, 7, 17, 0.75) 75%, rgba(2, 4, 10, 0.94) 100%),
+              linear-gradient(180deg, rgba(4, 7, 17, 0.88) 0%, transparent 18%, transparent 82%, rgba(4, 7, 17, 0.92) 100%);
+}
+
+.main-menu-hud-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  padding: max(12px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.menu-hud-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 18px;
-}
-
-.main-menu-header {
-  text-align: center;
-  margin-bottom: 6px;
   width: 100%;
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
-.main-title-centered {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 38px;
+.menu-title-brand-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.2vw, 16px);
+}
+
+.menu-hud-main-title {
+  font-family: 'Chakra Petch', 'Orbitron', sans-serif !important;
+  font-style: italic;
   font-weight: 900;
-  letter-spacing: 3px;
+  font-size: clamp(22px, 4.8vh, 38px) !important;
+  letter-spacing: clamp(1.5px, 0.4vw, 3.5px);
   margin: 0;
-  text-align: center;
-  color: #ffffff;
-  text-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+  line-height: 1.05;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: baseline;
+  gap: clamp(6px, 1vw, 12px);
+  transform: skewX(-6deg);
 }
 
-.main-subtitle-centered {
+.menu-hud-main-title .title-primary {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 40%, #cbd5e1 65%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 16px rgba(255, 255, 255, 0.3));
+}
+
+.menu-hud-main-title .title-accent {
+  background: linear-gradient(180deg, #e0faff 0%, #38bdf8 30%, #00f0ff 65%, #0284c7 92%, #0369a1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 20px rgba(0, 240, 255, 0.85)) drop-shadow(0 0 35px rgba(0, 240, 255, 0.4));
+  letter-spacing: clamp(2px, 0.5vw, 4.5px);
+}
+
+.title-brand-pill {
   font-family: 'Orbitron', sans-serif;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: #f472b6;
-  margin-top: 4px;
-  text-align: center;
+  font-size: clamp(8px, 1.4vh, 10.5px);
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #00f0ff;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.22) 0%, rgba(2, 132, 199, 0.35) 100%);
+  border: 1px solid rgba(0, 240, 255, 0.6);
+  border-radius: 4px;
+  padding: 2px 7px;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.4), inset 0 0 8px rgba(0, 240, 255, 0.2);
+  transform: skewX(-6deg);
+  text-shadow: 0 0 8px #00f0ff;
 }
 
-.menu-split-layout {
+.menu-hud-subrow {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1vw, 10px);
+  margin-top: clamp(3px, 0.6vh, 6px);
+  flex-wrap: wrap;
+}
+
+.menu-hud-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(7.5px, 1.3vh, 9.5px);
+  font-weight: 800;
+  color: #ffe600;
+  letter-spacing: 1.8px;
+  background: rgba(255, 230, 0, 0.09);
+  border: 1px solid rgba(255, 230, 0, 0.4);
+  border-radius: 4px;
+  padding: 2px 7px;
+  box-shadow: 0 0 10px rgba(255, 230, 0, 0.2);
+  text-shadow: 0 0 8px rgba(255, 230, 0, 0.5);
+}
+
+.subrow-separator {
+  color: rgba(0, 240, 255, 0.4);
+  font-weight: 900;
+  font-size: 11px;
+}
+
+.menu-hud-subtitle {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(7.5px, 1.3vh, 9.5px);
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1.2px;
+}
+
+.menu-hud-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 20px;
+  padding: clamp(4px, 0.8vh, 6px) clamp(8px, 1.2vw, 14px);
+}
+
+.status-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00f0ff;
+  box-shadow: 0 0 10px #00f0ff;
+  animation: pulse 1.5s infinite;
+}
+
+.status-badge-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(8px, 1.3vh, 10px);
+  font-weight: 800;
+  color: #00f0ff;
+  letter-spacing: 1px;
+}
+
+.menu-hud-body {
   display: flex;
   flex-direction: row;
-  gap: 32px;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  pointer-events: none;
+  margin: clamp(4px, 1vh, 12px) 0;
 }
 
-.hero-preview-stage {
-  flex: 1;
-  background: rgba(8, 12, 22, 0.85);
-  border: 1px solid rgba(0, 240, 255, 0.35);
-  border-radius: 12px;
-  padding: 18px;
+.menu-hud-dock {
+  pointer-events: auto;
+  background: rgba(8, 14, 28, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 240, 255, 0.32);
+  border-radius: 14px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.75), inset 0 0 20px rgba(0, 240, 255, 0.08);
+  max-height: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-hud-dock:hover {
+  border-color: rgba(0, 240, 255, 0.55);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.85), inset 0 0 25px rgba(0, 240, 255, 0.14);
+}
+
+.dock-left {
+  width: clamp(210px, 26vw, 310px);
+  padding: clamp(10px, 1.8vh, 16px);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  box-shadow: inset 0 0 25px rgba(0, 240, 255, 0.15), 0 8px 30px rgba(0, 0, 0, 0.6);
+  gap: clamp(6px, 1.4vh, 12px);
 }
 
-.preview-header {
-  text-align: center;
-  margin-bottom: 6px;
+.dock-right {
+  width: clamp(200px, 24vw, 290px);
+  padding: clamp(10px, 1.8vh, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.4vh, 12px);
+}
+
+.dock-header {
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.dock-header.right-align {
+  text-align: right;
+}
+
+.dock-subhead {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(7.5px, 1.3vh, 9.5px);
+  color: #94a3b8;
+  letter-spacing: 1px;
+  font-weight: 700;
+  margin-top: 2px;
 }
 
 .preview-tag {
   font-family: 'Orbitron', sans-serif;
-  font-size: 10px;
+  font-size: clamp(7.5px, 1.4vh, 9.5px);
   font-weight: 800;
   color: #ffe600;
   letter-spacing: 2px;
@@ -961,96 +1460,34 @@ body, html {
 
 .hero-name {
   font-family: 'Orbitron', sans-serif;
-  font-size: 22px;
+  font-size: clamp(13px, 2.6vh, 22px);
   font-weight: 900;
   color: #ffffff;
   letter-spacing: 2px;
-  margin: 2px 0 2px 0;
+  margin: 2px 0;
   text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+  line-height: 1.1;
 }
 
 .hero-role {
-  font-size: 10.5px;
+  font-size: clamp(7.5px, 1.3vh, 10.5px);
   font-weight: 700;
   color: #94a3b8;
   letter-spacing: 1px;
 }
 
-.canvas-3d-wrapper {
-  position: relative;
-  width: 320px;
-  height: 280px;
-  border-radius: 10px;
-  background: radial-gradient(circle at center, rgba(30, 20, 60, 0.5) 0%, rgba(4, 7, 15, 0.95) 75%);
-  border: 1px solid rgba(0, 240, 255, 0.2);
-  overflow: hidden;
-  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
-  margin: 6px 0;
-}
-
-#hero-preview-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-  cursor: grab;
-}
-
-#hero-preview-canvas:active {
-  cursor: grabbing;
-}
-
-.preview-rotate-hint {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Orbitron', sans-serif;
-  font-size: 9px;
-  color: rgba(0, 240, 255, 0.7);
-  letter-spacing: 1px;
-  pointer-events: none;
-  white-space: nowrap;
-}
-
-.hero-stats-row {
-  display: flex;
-  gap: 8px;
-  margin: 8px 0;
-  width: 100%;
-  justify-content: center;
-}
-
-.stat-pill {
-  background: rgba(0, 240, 255, 0.1);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-family: 'Orbitron', sans-serif;
-}
-
-.stat-lbl {
-  color: #94a3b8;
-  margin-right: 4px;
-}
-
-.stat-val {
-  color: #00f0ff;
-  font-weight: 800;
-}
-
 .hero-select-tabs {
   display: flex;
-  gap: 6px;
+  gap: clamp(3px, 0.6vw, 6px);
   width: 100%;
-  margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .hero-tab {
   flex: 1;
-  padding: 6px 4px;
+  padding: clamp(4px, 0.8vh, 6px) clamp(2px, 0.4vw, 4px);
   font-family: 'Orbitron', sans-serif;
-  font-size: 10px;
+  font-size: clamp(7.5px, 1.4vh, 9.5px);
   font-weight: 800;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -1072,26 +1509,146 @@ body, html {
   cursor: not-allowed;
 }
 
-.menu-action-panel {
+.hero-stats-row {
+  display: flex;
+  gap: clamp(4px, 0.8vw, 8px);
+  width: 100%;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.stat-pill {
   flex: 1;
+  text-align: center;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.28);
+  padding: clamp(2px, 0.5vh, 4px) clamp(3px, 0.6vw, 6px);
+  border-radius: 6px;
+  font-size: clamp(7px, 1.3vh, 9.5px);
+  font-family: 'Orbitron', sans-serif;
+}
+
+.stat-lbl {
+  color: #94a3b8;
+  margin-right: 3px;
+}
+
+.stat-val {
+  color: #00f0ff;
+  font-weight: 800;
+}
+
+.hero-rotate-ctrls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.hero-rot-btn {
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: #00f0ff;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hero-rot-btn:hover {
+  background: rgba(0, 240, 255, 0.3);
+  border-color: #00f0ff;
+  color: #ffffff;
+}
+
+.preview-rotate-hint {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(6.5px, 1.2vh, 8px);
+  color: rgba(0, 240, 255, 0.75);
+  letter-spacing: 0.8px;
+  pointer-events: none;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.menu-hud-hero-stage {
+  flex: 1;
+  pointer-events: none; /* Mouse and touch events pass straight to #hero-preview-canvas */
+  height: 100%;
+  min-width: 60px;
+}
+
+.menu-btn-stack {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  text-align: left;
+  gap: clamp(4px, 1.2vh, 10px) !important;
+  width: 100%;
+}
+
+.menu-btn {
+  width: 100%;
+  padding: clamp(6px, 1.4vh, 12px) clamp(10px, 1.5vw, 16px) !important;
+  font-size: clamp(9.5px, 1.8vh, 13px) !important;
+  letter-spacing: 0.8px;
+}
+
+.deploy-hero-btn {
+  background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%) !important;
+  color: #020617 !important;
+  font-weight: 900 !important;
+  border: none !important;
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.5) !important;
+  transition: transform 0.15s, box-shadow 0.15s !important;
+}
+
+.deploy-hero-btn:hover {
+  transform: scale(1.03) !important;
+  box-shadow: 0 0 35px rgba(0, 240, 255, 0.85) !important;
+}
+
+.menu-hud-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  pointer-events: auto;
+  flex-shrink: 0;
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(7px, 1.3vh, 9px);
+  color: #64748b;
+  letter-spacing: 1px;
+}
+
+.hud-footer-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #00f0ff;
+  font-weight: 800;
+}
+
+.hud-tag-icon {
+  color: #ffe600;
+}
+
+.hud-footer-hint {
+  color: #94a3b8;
+  font-size: clamp(7px, 1.2vh, 8.5px);
 }
 
 .creator-credits {
-  margin-top: 24px;
-  font-size: 11px;
+  font-size: clamp(7px, 1.3vh, 9.5px);
   color: #64748b;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  width: 100%;
+  gap: clamp(2px, 0.4vw, 5px);
 }
 
 .creator-link {
@@ -1376,7 +1933,7 @@ body, html {
   line-height: 1.2;
 }
 
-@media (max-width: 860px) {
+@media (orientation: portrait) and (max-width: 600px) {
   .menu-split-layout {
     flex-direction: column;
   }
@@ -1565,4 +2122,1145 @@ body, html {
 .legend-dot.threat { background: #ff0055; box-shadow: 0 0 6px #ff0055; }
 .legend-dot.enemy { background: #ffe600; box-shadow: 0 0 6px #ffe600; }
 .legend-dot.building { background: #3c4b64; }
+
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVE ENGINE, TOUCH CONTROLS & ORIENTATION
+   ========================================================================== */
+
+/* Safe area support for notch and home bars */
+#hud {
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+/* --------------------------------------------------------------------------
+   1. LANDSCAPE ORIENTATION GUIDANCE OVERLAY
+   -------------------------------------------------------------------------- */
+.orientation-prompt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: radial-gradient(circle at center, rgba(12, 18, 32, 0.96) 0%, rgba(4, 7, 14, 0.99) 100%);
+  backdrop-filter: blur(18px);
+  z-index: 10000;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  text-align: center;
+  touch-action: none;
+}
+
+.orientation-prompt.visible {
+  display: flex;
+  animation: promptFadeIn 0.35s ease-out;
+}
+
+@keyframes promptFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1.0); }
+}
+
+.orientation-card {
+  max-width: 420px;
+  width: 90%;
+  background: rgba(13, 20, 36, 0.94);
+  border: 2px solid #00f0ff;
+  border-radius: 16px;
+  padding: 32px 24px;
+  box-shadow: 0 0 50px rgba(0, 240, 255, 0.35), inset 0 0 30px rgba(0, 240, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.phone-rotate-anim {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.phone-svg {
+  animation: phoneRotateAnim 2.6s ease-in-out infinite;
+  transform-origin: center center;
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.6));
+}
+
+@keyframes phoneRotateAnim {
+  0%, 15% {
+    transform: rotate(0deg);
+  }
+  50%, 75% {
+    transform: rotate(-90deg);
+  }
+  90%, 100% {
+    transform: rotate(0deg);
+  }
+}
+
+.orientation-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffe600;
+  letter-spacing: 2px;
+  background: rgba(255, 230, 0, 0.12);
+  border: 1px solid #ffe600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.orientation-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+  margin: 2px 0;
+}
+
+.orientation-desc {
+  font-size: 13.5px;
+  color: #94a3b8;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+.orientation-lock-pill {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid #00f0ff;
+  color: #00f0ff;
+  padding: 7px 16px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+  animation: lockPulse 2s infinite ease-in-out;
+}
+
+@keyframes lockPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(0, 240, 255, 0.3); }
+  50% { transform: scale(1.04); box-shadow: 0 0 20px rgba(0, 240, 255, 0.6); }
+}
+
+/* --------------------------------------------------------------------------
+   2. MOBILE TOUCH CONTROLS OVERLAY
+   -------------------------------------------------------------------------- */
+.loa-touch-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  z-index: 70;
+  pointer-events: none;
+  display: none;
+  touch-action: none;
+}
+
+.loa-touch-overlay.active {
+  display: block;
+}
+
+/* Top Mobile Quick Bar */
+.mobile-top-bar {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+  z-index: 85;
+}
+
+.mobile-action-pill {
+  background: rgba(13, 17, 28, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 18px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #00f0ff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  transition: all 0.15s ease;
+  touch-action: none;
+}
+
+.mobile-action-pill:active,
+.mobile-action-pill.active {
+  background: rgba(0, 240, 255, 0.35);
+  border-color: #00f0ff;
+  transform: scale(0.94);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.7);
+}
+
+.mobile-action-pill .m-btn-icon {
+  font-size: 12px;
+}
+
+/* Virtual Analog Joystick (Bottom-Left) */
+.joystick-touch-zone {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 45vw;
+  height: 55vh;
+  pointer-events: auto;
+  touch-action: none;
+  z-index: 75;
+}
+
+.joystick-base {
+  position: absolute;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: max(24px, env(safe-area-inset-left));
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(0, 240, 255, 0.08) 0%, rgba(10, 15, 26, 0.75) 75%);
+  border: 2px solid rgba(0, 240, 255, 0.45);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.25), inset 0 0 15px rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+.joystick-crosshair-ring {
+  position: absolute;
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  border: 1px dashed rgba(0, 240, 255, 0.3);
+  pointer-events: none;
+}
+
+.joystick-knob {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #00f0ff, #0077ff);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.8), inset 0 0 8px rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translate(0px, 0px);
+  will-change: transform;
+  pointer-events: none;
+}
+
+.knob-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 6px #ffffff;
+}
+
+/* Touch Camera Look Zone (Right half, behind buttons) */
+.camera-look-zone {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 55vw;
+  height: 100vh;
+  height: 100dvh;
+  pointer-events: auto;
+  touch-action: none;
+  z-index: 72;
+}
+
+/* Action Buttons Deck (Bottom-Right) */
+.mobile-action-deck {
+  position: absolute;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  right: max(16px, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 78;
+}
+
+.action-arc-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.action-primary-cluster {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.m-action-btn {
+  border-radius: 50%;
+  background: rgba(13, 17, 28, 0.88);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(0, 240, 255, 0.45);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+  transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.m-action-btn:active,
+.m-action-btn.pressed {
+  transform: scale(0.91) !important;
+  filter: brightness(1.3);
+}
+
+.m-action-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.m-action-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.m-action-sub {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 7px;
+  font-weight: 800;
+  opacity: 0.75;
+  line-height: 1;
+}
+
+/* Secondary Buttons */
+.secondary-action {
+  width: 48px;
+  height: 48px;
+  background: rgba(16, 24, 40, 0.85);
+  border-color: rgba(0, 240, 255, 0.35);
+}
+
+.secondary-action .m-action-icon {
+  font-size: 16px;
+}
+
+.secondary-action .m-action-title {
+  font-size: 7.5px;
+}
+
+/* Attack Button */
+.attack-btn {
+  width: 58px;
+  height: 58px;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 0, 85, 0.35), rgba(13, 17, 28, 0.9));
+  border-color: #ff0055;
+  box-shadow: 0 0 16px rgba(255, 0, 85, 0.4);
+}
+
+.attack-btn .m-action-title {
+  color: #ff5588;
+}
+
+/* Jump Button */
+.jump-btn {
+  width: 56px;
+  height: 56px;
+  background: radial-gradient(circle at 35% 35%, rgba(0, 240, 255, 0.25), rgba(13, 17, 28, 0.9));
+  border-color: #00f0ff;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
+}
+
+.jump-btn .m-action-title {
+  color: #00f0ff;
+}
+
+/* Grand Swing / Flight Button */
+.swing-btn {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, rgba(255, 0, 85, 0.85), rgba(153, 0, 255, 0.85));
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 0 25px rgba(255, 0, 85, 0.6), inset 0 0 12px rgba(255, 255, 255, 0.4);
+}
+
+.swing-btn.holding {
+  transform: scale(1.08) !important;
+  background: linear-gradient(135deg, #00f0ff, #9900ff) !important;
+  border-color: #00f0ff !important;
+  box-shadow: 0 0 35px rgba(0, 240, 255, 0.9), inset 0 0 15px #00f0ff !important;
+  animation: pulse-glow 0.8s infinite alternate;
+}
+
+.swing-btn .m-action-icon {
+  font-size: 24px;
+}
+
+.swing-btn .m-action-title {
+  font-size: 9px;
+  color: #ffffff;
+}
+
+/* Drive Vehicle Floating Action Button */
+.drive-btn {
+  width: 58px;
+  height: 58px;
+  background: radial-gradient(circle at 35% 35%, rgba(0, 255, 136, 0.4), rgba(13, 22, 18, 0.95));
+  border-color: #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+  align-self: center;
+  margin-bottom: 4px;
+  animation: pulse-glow 1.2s infinite alternate;
+}
+
+.drive-btn.active-car {
+  border-color: #ff0055;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 0, 85, 0.4), rgba(22, 13, 18, 0.95));
+  box-shadow: 0 0 20px rgba(255, 0, 85, 0.7);
+}
+
+.drive-btn .m-action-title {
+  color: #00ff88;
+}
+
+.drive-btn.active-car .m-action-title {
+  color: #ff5588;
+}
+
+/* --------------------------------------------------------------------------
+   3. RESPONSIVE MEDIA QUERIES FOR ALL DISPLAYS
+   -------------------------------------------------------------------------- */
+
+/* Map canvases responsive constraints */
+.hold-map-frame {
+  max-width: 94vw !important;
+  max-height: 88vh !important;
+  width: auto;
+  overflow: hidden;
+}
+
+#hold-map-canvas {
+  max-width: 100% !important;
+  max-height: 58vh !important;
+  height: auto !important;
+  width: auto !important;
+  aspect-ratio: 4/3;
+}
+
+.tactical-map-wrapper {
+  max-width: 100% !important;
+}
+
+#tactical-map-canvas {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* === MOBILE LANDSCAPE (phones turned horizontally, height <= 540px) === */
+@media (max-height: 540px) {
+  /* Dynamic Responsive Mission Card */
+  .mission-card {
+    top: max(6px, env(safe-area-inset-top)) !important;
+    left: max(8px, env(safe-area-inset-left)) !important;
+    width: clamp(155px, 22vw, 205px) !important;
+    max-width: 25vw !important;
+    padding: clamp(4px, 1vh, 8px) clamp(6px, 1vw, 10px) !important;
+    border-radius: 6px !important;
+    border-left-width: 3px !important;
+  }
+
+  .mission-title {
+    font-size: clamp(8.5px, 1.8vh, 10px) !important;
+    margin-bottom: 2px !important;
+  }
+
+  #mission-distance {
+    font-size: clamp(8px, 1.6vh, 9.5px) !important;
+  }
+
+  #mission-objective {
+    font-size: clamp(9px, 1.8vh, 10.5px) !important;
+    line-height: 1.2 !important;
+    margin-bottom: 3px !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .mission-progress-bar {
+    height: 3.5px !important;
+    margin-bottom: 3px !important;
+  }
+
+  #enemy-count {
+    font-size: clamp(8.5px, 1.6vh, 9.5px) !important;
+  }
+
+  .collectibles-badge-row {
+    font-size: clamp(8px, 1.5vh, 9px) !important;
+    margin-top: 1px !important;
+  }
+
+  .hud-minimize-btn {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 8px !important;
+  }
+
+  .mission-collapsed-pill {
+    top: max(6px, env(safe-area-inset-top)) !important;
+    left: max(8px, env(safe-area-inset-left)) !important;
+    padding: 4px 10px !important;
+    font-size: 9px !important;
+    gap: 5px !important;
+  }
+
+  /* Dynamic Responsive Minimap Radar */
+  .minimap-container {
+    top: max(6px, env(safe-area-inset-top)) !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
+    width: clamp(74px, 12vw, 94px) !important;
+    height: clamp(74px, 12vw, 94px) !important;
+    border-width: 1.5px !important;
+  }
+
+  .minimap-header-dock,
+  .minimap-control-dock {
+    top: auto !important;
+    bottom: -11px !important;
+    padding: 0 !important;
+  }
+
+  .radar-minimize-btn {
+    padding: 2px 5px !important;
+    gap: 4px !important;
+    min-height: 20px !important;
+  }
+
+  .radar-scanner-icon {
+    width: 11px !important;
+    height: 11px !important;
+  }
+
+  .radar-scanner-icon svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+
+  .radar-btn-title {
+    font-size: 6.8px !important;
+    letter-spacing: 0.8px !important;
+  }
+
+  .radar-btn-action {
+    padding: 1px 4px !important;
+    font-size: 6px !important;
+  }
+
+  .radar-min-icon {
+    font-size: 7.5px !important;
+  }
+
+  .radar-min-label {
+    font-size: 5.5px !important;
+  }
+
+  .radar-collapsed-pill {
+    top: max(6px, env(safe-area-inset-top)) !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
+    padding: 4px 11px !important;
+    font-size: 9.5px !important;
+    gap: 5px !important;
+  }
+
+  /* Top Mobile Quick Bar */
+  .mobile-top-bar {
+    top: max(6px, env(safe-area-inset-top)) !important;
+    gap: 4px !important;
+  }
+
+  .mobile-action-pill {
+    padding: 3px 7px !important;
+    font-size: 8px !important;
+    gap: 3px !important;
+  }
+
+  /* Ultra-Ergonomic Bottom Center Hero Status Bar (Completely Clear of All Buttons) */
+  .bottom-center-hud {
+    bottom: max(4px, env(safe-area-inset-bottom)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    padding: clamp(3px, 1vh, 7px) clamp(6px, 1.2vw, 12px) !important;
+    width: clamp(170px, 28vw, 260px) !important;
+    max-width: calc(100vw - 310px) !important;
+    border-radius: 8px !important;
+    border-bottom-width: 2.5px !important;
+    z-index: 60 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.85), inset 0 0 10px rgba(0, 240, 255, 0.1) !important;
+  }
+
+  .hero-header-row {
+    margin-bottom: 2px !important;
+  }
+
+  .hero-title {
+    font-size: clamp(9px, 2vh, 12px) !important;
+  }
+
+  .speed-badge {
+    padding: 1px 4px !important;
+    gap: 3px !important;
+  }
+
+  .speed-title {
+    font-size: 7.5px !important;
+  }
+
+  #speed-value {
+    font-size: clamp(9px, 2vh, 12px) !important;
+  }
+
+  .gauges-container {
+    gap: clamp(4px, 1vw, 8px) !important;
+  }
+
+  .gauge-label {
+    font-size: clamp(6.5px, 1.3vh, 8px) !important;
+    margin-bottom: 1px !important;
+  }
+
+  .gauge-track {
+    height: clamp(5px, 1.1vh, 7px) !important;
+    border-radius: 2px !important;
+  }
+
+  #combo-counter {
+    margin-top: 2px !important;
+    font-size: clamp(9.5px, 1.8vh, 12px) !important;
+  }
+
+  /* Touch Controls Sized to Guarantee Zero Collisions */
+  .joystick-touch-zone {
+    width: 36vw !important;
+    height: 52vh !important;
+  }
+
+  .joystick-base {
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    left: max(8px, env(safe-area-inset-left)) !important;
+    width: clamp(92px, 13vw, 108px) !important;
+    height: clamp(92px, 13vw, 108px) !important;
+  }
+
+  .joystick-knob {
+    width: clamp(38px, 5.5vw, 46px) !important;
+    height: clamp(38px, 5.5vw, 46px) !important;
+  }
+
+  .mobile-action-deck {
+    bottom: max(6px, env(safe-area-inset-bottom)) !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
+    gap: 5px !important;
+  }
+
+  .action-arc-row {
+    gap: 7px !important;
+    margin-right: 4px !important;
+  }
+
+  .action-primary-cluster {
+    gap: 7px !important;
+  }
+
+  .secondary-action {
+    width: clamp(36px, 5.2vw, 42px) !important;
+    height: clamp(36px, 5.2vw, 42px) !important;
+  }
+
+  .secondary-action .m-action-icon {
+    font-size: 13px !important;
+  }
+
+  .secondary-action .m-action-title {
+    font-size: 6.5px !important;
+  }
+
+  .attack-btn {
+    width: clamp(44px, 6.4vw, 52px) !important;
+    height: clamp(44px, 6.4vw, 52px) !important;
+  }
+
+  .attack-btn .m-action-icon {
+    font-size: 15px !important;
+  }
+
+  .attack-btn .m-action-title {
+    font-size: 7px !important;
+  }
+
+  .jump-btn {
+    width: clamp(42px, 6.1vw, 50px) !important;
+    height: clamp(42px, 6.1vw, 50px) !important;
+  }
+
+  .jump-btn .m-action-icon {
+    font-size: 15px !important;
+  }
+
+  .jump-btn .m-action-title {
+    font-size: 7px !important;
+  }
+
+  .swing-btn {
+    width: clamp(54px, 7.8vw, 64px) !important;
+    height: clamp(54px, 7.8vw, 64px) !important;
+  }
+
+  .swing-btn .m-action-icon {
+    font-size: 18px !important;
+  }
+
+  .swing-btn .m-action-title {
+    font-size: 7.5px !important;
+  }
+
+  .swing-btn .m-action-sub {
+    font-size: 6px !important;
+  }
+
+  .drive-btn {
+    width: clamp(42px, 6.1vw, 50px) !important;
+    height: clamp(42px, 6.1vw, 50px) !important;
+    margin-bottom: 2px !important;
+  }
+
+  /* Hide Desktop Tactical Dock on Touch Devices so it doesn't collide with joystick */
+  .tactical-command-dock {
+    display: none !important;
+  }
+
+  /* Vehicle prompt scaled */
+  .vehicle-prompt {
+    bottom: 70px !important;
+    font-size: 10px !important;
+    padding: 4px 12px !important;
+  }
+
+  /* Modals in landscape: smooth scroll and fit */
+  .modal-content {
+    max-height: 96vh;
+    max-height: 96dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 16px !important;
+  }
+
+  /* Full-Canvas HUD Main Menu in landscape */
+  .main-menu-hud-screen {
+    overflow: hidden !important;
+  }
+
+  .main-menu-hud-layer {
+    padding: max(6px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)) !important;
+  }
+
+  .menu-hud-main-title {
+    font-size: clamp(14px, 3.8vh, 18px) !important;
+    letter-spacing: 1.2px !important;
+    gap: 4px !important;
+  }
+
+  .title-brand-pill {
+    font-size: 7px !important;
+    padding: 1px 4px !important;
+  }
+
+  .menu-hud-subrow {
+    gap: 4px !important;
+    margin-top: 1px !important;
+  }
+
+  .menu-hud-badge {
+    font-size: 6.5px !important;
+    padding: 1px 4px !important;
+    letter-spacing: 1px !important;
+  }
+
+  .subrow-separator {
+    font-size: 8px !important;
+  }
+
+  .menu-hud-subtitle {
+    font-size: 6.5px !important;
+    letter-spacing: 0.6px !important;
+  }
+
+  .menu-hud-status-badge {
+    display: none !important; /* Save horizontal header room */
+  }
+
+  .menu-hud-body {
+    margin: 2px 0 !important;
+  }
+
+  .dock-left {
+    width: clamp(165px, 26vw, 215px) !important;
+    padding: clamp(6px, 1.4vh, 10px) !important;
+    gap: clamp(2px, 0.8vh, 5px) !important;
+    border-radius: 10px !important;
+  }
+
+  .dock-right {
+    width: clamp(155px, 24vw, 200px) !important;
+    padding: clamp(6px, 1.4vh, 10px) !important;
+    gap: clamp(2px, 0.8vh, 5px) !important;
+    border-radius: 10px !important;
+  }
+
+  .preview-tag {
+    font-size: clamp(6px, 1.2vh, 7.5px) !important;
+  }
+
+  .hero-name {
+    font-size: clamp(10px, 2.2vh, 13px) !important;
+    margin: 1px 0 !important;
+  }
+
+  .hero-role {
+    font-size: clamp(6px, 1.1vh, 7.5px) !important;
+  }
+
+  .hero-select-tabs {
+    gap: 3px !important;
+  }
+
+  .hero-tab {
+    padding: clamp(2px, 0.6vh, 4px) 2px !important;
+    font-size: clamp(6.5px, 1.3vh, 8px) !important;
+  }
+
+  .hero-stats-row {
+    margin: 2px 0 !important;
+    gap: 3px !important;
+  }
+
+  .stat-pill {
+    padding: 1px 3px !important;
+    font-size: clamp(6px, 1.3vh, 7.5px) !important;
+  }
+
+  .hero-rot-btn {
+    padding: 2px 6px !important;
+    font-size: 8.5px !important;
+  }
+
+  .preview-rotate-hint {
+    font-size: clamp(5.5px, 1.1vh, 7px) !important;
+  }
+
+  .menu-btn-stack {
+    gap: clamp(2px, 0.8vh, 5px) !important;
+  }
+
+  .menu-btn {
+    padding: clamp(3px, 1vh, 6px) 8px !important;
+    font-size: clamp(8px, 1.5vh, 10.5px) !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .menu-hud-footer {
+    font-size: clamp(6.5px, 1.2vh, 8px) !important;
+  }
+
+  .hud-footer-hint {
+    display: none !important;
+  }
+
+  .creator-credits {
+    font-size: clamp(6px, 1.2vh, 7.5px) !important;
+  }
+
+  /* Pause Screen in landscape */
+  .pause-modal-container {
+    padding: 12px 18px !important;
+  }
+
+  .pause-header {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+  }
+
+  .pause-game-title {
+    font-size: 14px;
+  }
+
+  .pause-tab-btn {
+    padding: 6px 10px;
+    font-size: 9.5px;
+  }
+
+  .pause-mission-box {
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+
+  .pause-mission-headline {
+    font-size: 13px;
+  }
+
+  .pause-mission-sub {
+    font-size: 11px;
+  }
+
+  .pause-primary-btn {
+    padding: 9px;
+    font-size: 12px;
+  }
+
+  .pause-action-subbtn {
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  /* Achievements & Collectibles in landscape */
+  .achievements-grid,
+  .collectibles-grid {
+    grid-template-columns: 1fr 1fr;
+    max-height: 60vh;
+    gap: 8px;
+  }
+
+  .achievement-card,
+  .collectible-card {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .card-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+
+  .card-title {
+    font-size: 11px;
+  }
+
+  .card-desc {
+    font-size: 10px;
+  }
+}
+
+/* === MOBILE PORTRAIT (when user opts to play vertically, width <= 600px) === */
+@media (orientation: portrait) and (max-width: 600px) {
+  .mission-card {
+    top: max(8px, env(safe-area-inset-top));
+    left: max(8px, env(safe-area-inset-left));
+    width: calc(100% - 110px);
+    max-width: 250px;
+    padding: 8px 10px;
+    border-radius: 6px;
+  }
+
+  .minimap-container {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    width: 88px;
+    height: 88px;
+  }
+
+  .bottom-center-hud {
+    bottom: 170px;
+    width: calc(100% - 32px);
+    max-width: 360px;
+    padding: 8px 14px;
+  }
+
+  .tactical-command-dock {
+    display: none;
+  }
+
+  .modal-content {
+    max-height: 92vh;
+    width: 95% !important;
+    padding: 16px 14px !important;
+  }
+
+  /* Full-Canvas HUD Main Menu in portrait */
+  .main-menu-hud-screen {
+    overflow: hidden !important;
+  }
+
+  .main-menu-hud-layer {
+    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)) !important;
+  }
+
+  .menu-hud-main-title {
+    font-size: clamp(16px, 3vh, 22px) !important;
+    gap: 5px !important;
+  }
+
+  .title-brand-pill {
+    font-size: 8px !important;
+    padding: 1px 4px !important;
+  }
+
+  .menu-hud-subrow {
+    gap: 5px !important;
+    margin-top: 1px !important;
+  }
+
+  .menu-hud-badge {
+    font-size: 7px !important;
+    padding: 1px 5px !important;
+  }
+
+  .menu-hud-subtitle {
+    font-size: 7.5px !important;
+    margin-top: 0 !important;
+  }
+
+  .menu-hud-body {
+    flex-direction: column !important;
+    gap: clamp(6px, 1.2vh, 10px) !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .dock-left {
+    width: 100% !important;
+    max-width: 330px !important;
+    padding: 8px 10px !important;
+    gap: 4px !important;
+  }
+
+  .dock-right {
+    width: 100% !important;
+    max-width: 330px !important;
+    padding: 8px 10px !important;
+    gap: 4px !important;
+  }
+
+  .menu-hud-hero-stage {
+    min-height: 40px !important;
+    width: 100% !important;
+  }
+
+  .hero-stats-row {
+    margin: 2px 0 !important;
+    gap: 3px !important;
+  }
+
+  .stat-pill {
+    padding: 1px 4px !important;
+    font-size: 7.5px !important;
+  }
+
+  .hero-select-tabs {
+    gap: 3px !important;
+    margin-top: 2px !important;
+  }
+
+  .hero-tab {
+    padding: 3px 2px !important;
+    font-size: 7.5px !important;
+  }
+
+  .menu-btn-stack {
+    margin-top: 0 !important;
+    gap: 4px !important;
+    width: 100% !important;
+  }
+
+  .menu-btn {
+    padding: 5px 10px !important;
+    font-size: 10px !important;
+  }
+
+  .creator-credits {
+    margin-top: 4px !important;
+    font-size: 7.5px !important;
+  }
+
+  .achievements-grid,
+  .collectibles-grid {
+    grid-template-columns: 1fr;
+    max-height: 65vh;
+  }
+
+  .pause-tabs {
+    flex-direction: column;
+  }
+
+  .pause-secondary-row {
+    flex-direction: column;
+  }
+}
+
+/* === TABLET & SMALL LAPTOPS (width <= 860px) === */
+@media (max-width: 860px) {
+  .achievements-grid,
+  .collectibles-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* === UNIVERSAL MOBILE TOUCH OPTIMIZATIONS === */
+button,
+.hero-tab,
+.preset-btn,
+.setting-toggle-btn,
+.mobile-action-pill,
+.m-action-btn,
+.hud-minimize-btn,
+.radar-minimize-btn,
+.mission-collapsed-pill,
+.radar-collapsed-pill,
+.close-modal-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.close-modal-btn {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
 

@@ -396,6 +396,56 @@ export class AudioSystem {
     osc.stop(t + 0.45);
   }
 
+  // Radar Minimap Minimize / Expand Tactical Audio Chirp
+  playRadarToggle(isExpanding = false) {
+    this.ensureContext();
+    if (!this.ctx || this.isMuted) return;
+    const t = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+
+    if (isExpanding) {
+      // Ascending sleek sci-fi chirp for expanding
+      osc.frequency.setValueAtTime(520, t);
+      osc.frequency.exponentialRampToValueAtTime(1040, t + 0.12);
+    } else {
+      // Descending sleek tactical chirp for minimizing
+      osc.frequency.setValueAtTime(920, t);
+      osc.frequency.exponentialRampToValueAtTime(460, t + 0.12);
+    }
+
+    gain.gain.setValueAtTime(0.32, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(t);
+    osc.stop(t + 0.13);
+  }
+
+  // General Tactical UI Click Chirp
+  playUiClick() {
+    this.ensureContext();
+    if (!this.ctx || this.isMuted) return;
+    const t = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(1200, t + 0.04);
+
+    gain.gain.setValueAtTime(0.2, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(t);
+    osc.stop(t + 0.05);
+  }
+
   toggleMute() {
     this.isMuted = !this.isMuted;
     if (this.masterGain) {
