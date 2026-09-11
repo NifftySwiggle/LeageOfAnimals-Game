@@ -2,7 +2,7 @@
 
 <div align="center">
 
-## 🎮 [👉 PLAY THE GAME LIVE NOW 👈](https://nifftyswiggle.github.io/LOA/)
+## 🎮 [👉 PLAY THE GAME LIVE NOW 👈](https://loa.nifftyswiggle.com)
 ### 🌐 **[https://nifftyswiggle.github.io/LOA/](https://nifftyswiggle.github.io/LOA/)**
 
 <br/>
