@@ -4,7 +4,7 @@ import { AudioSystem } from './AudioSystem.js';
 import { Physics } from './Physics.js';
 import { InputController, KEYBIND_LABELS } from './InputController.js';
 import { CityGenerator } from './CityGenerator.js';
-import { Player } from './Player.js';
+import { Player, HERO_DEFAULT_CUSTOMIZATION } from './Player.js';
 import { WebSystem } from './WebSystem.js';
 import { PortalManager } from './Portals.js';
 import { CameraSystem } from './CameraSystem.js';
@@ -219,6 +219,11 @@ class Game {
         this.dayTime = 0.25; // Always launch in bright vibrant daytime
         const chosenHero = this.selectedHero || 'spider_ram';
         this.player.setCharacterType(chosenHero);
+        // Ensure latest customization from preview or storage is applied
+        const savedCust = this.previewHeroes?.[chosenHero]?.player?.customization;
+        if (savedCust) {
+          this.player.applyCustomization(savedCust);
+        }
         this.hud.updateHeroDisplay(chosenHero);
         if (this.touch) {
           this.touch.updateHeroDisplay(chosenHero);
@@ -228,6 +233,9 @@ class Game {
           mainMenu.classList.add('hidden');
           mainMenu.style.display = 'none';
         }
+        const suitDrawer = document.getElementById('suit-lab-drawer');
+        if (suitDrawer) suitDrawer.style.display = 'none';
+
         this.requestPointerLockSafe();
       });
     }
@@ -565,6 +573,9 @@ class Game {
         if (cm) cm.style.display = 'flex';
       });
     }
+
+    // 12. Hero Suit Customizer Lab
+    this.setupSuitLab();
   }
 
   initHeroPreview() {
@@ -617,18 +628,21 @@ class Game {
     this.previewScene.add(pedRing);
 
     // 1. Spider-Ram Preview Model
-    const previewSpiderPlayer = new Player(this.previewScene, null);
+    const previewSpiderPlayer = new Player(this.previewScene, null, 'spider_ram');
     previewSpiderPlayer.position.set(0, 0, 0);
     previewSpiderPlayer.mesh.position.set(0, 0, 0);
     this.previewScene.add(previewSpiderPlayer.mesh);
 
     // 2. Iron-Ram Armored Exo-Suit Preview Model
-    const ironRamData = this.createIronRamMesh(this.previewScene);
-    ironRamData.mesh.visible = false; // Initially hidden
+    const previewIronPlayer = new Player(this.previewScene, null, 'iron_ram');
+    previewIronPlayer.position.set(0, 0, 0);
+    previewIronPlayer.mesh.position.set(0, 0, 0);
+    previewIronPlayer.mesh.visible = false; // Initially hidden
+    this.previewScene.add(previewIronPlayer.mesh);
 
     this.previewHeroes = {
       spider_ram: { player: previewSpiderPlayer, mesh: previewSpiderPlayer.mesh, isLocked: false },
-      iron_ram: { data: ironRamData, mesh: ironRamData.mesh, isLocked: false }
+      iron_ram: { player: previewIronPlayer, mesh: previewIronPlayer.mesh, isLocked: false }
     };
     this.selectedHero = 'spider_ram';
 
@@ -685,6 +699,7 @@ class Game {
         }
 
         if (this.touch) this.touch.updateHeroDisplay(heroKey);
+        this.updateSuitLabUI();
       });
     });
 
@@ -749,103 +764,200 @@ class Game {
     }
   }
 
-  createIronRamMesh(scene) {
-    const group = new THREE.Group();
+  setupSuitLab() {
+    const suitDrawer = document.getElementById('suit-lab-drawer');
+    if (!suitDrawer) return;
 
-    // High-tech Armored Materials
-    const ironRedMat = new THREE.MeshStandardMaterial({
-      color: 0x991b1b, // Deep Iron Red Armor
-      roughness: 0.28,
-      metalness: 0.8
-    });
-    const ironGoldMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b, // Heavy Gold Plating
-      roughness: 0.2,
-      metalness: 0.9
-    });
-    const arcReactorMat = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff,
-      emissive: 0x00f0ff,
-      emissiveIntensity: 3.5
-    });
-    const armorDarkMat = new THREE.MeshStandardMaterial({
-      color: 0x0f172a,
-      roughness: 0.4,
-      metalness: 0.85
-    });
+    const btnOpenMain = document.getElementById('btn-open-suit-lab');
+    const btnOpenAlt = document.getElementById('btn-open-suit-lab-alt');
+    const btnOpenHud = document.getElementById('hud-suit-lab-btn');
+    const btnClose = document.getElementById('btn-close-suit-lab');
+    const btnDone = document.getElementById('btn-suit-done');
+    const btnRandom = document.getElementById('btn-suit-random');
+    const btnReset = document.getElementById('btn-suit-reset');
 
-    // Armored Torso
-    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.60, 0.52), ironRedMat);
-    chest.position.set(0, 0.28, 0);
-    group.add(chest);
+    const openDrawer = () => {
+      suitDrawer.style.display = 'flex';
+      this.updateSuitLabUI();
+    };
 
-    // Glowing Arc Reactor Chest Core
-    const arcGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.04, 16);
-    const arcCore = new THREE.Mesh(arcGeo, arcReactorMat);
-    arcCore.rotation.x = Math.PI / 2;
-    arcCore.position.set(0, 0.32, 0.28);
-    group.add(arcCore);
+    const closeDrawer = () => {
+      suitDrawer.style.display = 'none';
+    };
 
-    // Gold Chest Collar Plate
-    const collar = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.14, 0.54), ironGoldMat);
-    collar.position.set(0, 0.52, 0);
-    group.add(collar);
+    if (btnOpenMain) btnOpenMain.addEventListener('click', openDrawer);
+    if (btnOpenAlt) btnOpenAlt.addEventListener('click', openDrawer);
+    if (btnOpenHud) {
+      btnOpenHud.addEventListener('click', () => {
+        openDrawer();
+        if (document.pointerLockElement) {
+          document.exitPointerLock();
+        }
+      });
+    }
+    if (btnClose) btnClose.addEventListener('click', closeDrawer);
+    if (btnDone) btnDone.addEventListener('click', closeDrawer);
 
-    // Armored Waist
-    const waist = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.34, 0.46), armorDarkMat);
-    waist.position.set(0, -0.14, 0);
-    group.add(waist);
+    // Nav Category Tabs (Colors, Symbol, Headgear, Accessories/Gear)
+    const suitTabs = document.querySelectorAll('.suit-nav-btn');
+    const suitPanels = document.querySelectorAll('.suit-tab-pane');
 
-    // Armored Head with Gold Horns & Cyan Visor
-    const headGroup = new THREE.Group();
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.48, 0.50), ironRedMat);
-    headGroup.add(head);
+    suitTabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const targetTab = tab.getAttribute('data-tab');
+        suitTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
 
-    // Gold Face Mask Plate
-    const facePlate = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.36, 0.06), ironGoldMat);
-    facePlate.position.set(0, -0.02, 0.26);
-    headGroup.add(facePlate);
-
-    // Glowing Cyan Visor Eyes
-    const eyeGeo = new THREE.BoxGeometry(0.12, 0.05, 0.05);
-    const lEye = new THREE.Mesh(eyeGeo, arcReactorMat);
-    lEye.position.set(-0.11, 0.06, 0.29);
-    const rEye = new THREE.Mesh(eyeGeo, arcReactorMat);
-    rEye.position.set(0.11, 0.06, 0.29);
-    headGroup.add(lEye);
-    headGroup.add(rEye);
-
-    // Gold Armored Block Horns
-    [-1, 1].forEach(side => {
-      const hornGeo = new THREE.BoxGeometry(0.18, 0.42, 0.18);
-      const horn = new THREE.Mesh(hornGeo, ironGoldMat);
-      horn.position.set(side * 0.29, 0.26, 0.02);
-      horn.rotation.set(-0.35, side * 0.20, side * 0.38);
-      headGroup.add(horn);
+        suitPanels.forEach(panel => {
+          panel.classList.toggle('active', panel.id === targetTab);
+        });
+      });
     });
 
-    headGroup.position.set(0, 0.6, 0);
-    group.add(headGroup);
+    // Helper to get active character targets
+    const getActiveTargets = () => {
+      const mainMenu = document.getElementById('main-menu');
+      const isMenuVisible = mainMenu && mainMenu.style.display !== 'none';
+      const activeHeroKey = isMenuVisible ? (this.selectedHero || 'spider_ram') : this.player.characterType;
+      const previewPlayer = this.previewHeroes ? this.previewHeroes[activeHeroKey]?.player : null;
+      return { activeHeroKey, previewPlayer, inGamePlayer: this.player };
+    };
 
-    // Armored Limbs
-    const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.68, 0.24), ironRedMat);
-    lArm.position.set(-0.52, 0.1, 0);
-    group.add(lArm);
+    const applyToActiveHero = (changes) => {
+      const { activeHeroKey, previewPlayer, inGamePlayer } = getActiveTargets();
+      if (previewPlayer) {
+        previewPlayer.applyCustomization(changes);
+      }
+      if (inGamePlayer && inGamePlayer.characterType === activeHeroKey) {
+        inGamePlayer.applyCustomization(changes);
+      }
+      this.updateSuitLabUI();
+    };
 
-    const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.68, 0.24), ironRedMat);
-    rArm.position.set(0.52, 0.1, 0);
-    group.add(rArm);
+    // Color Swatches (Primary, Secondary, Energy)
+    const swatches = document.querySelectorAll('.color-swatch');
+    swatches.forEach(swatch => {
+      swatch.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const target = swatch.getAttribute('data-type') || swatch.getAttribute('data-color-target');
+        const color = swatch.getAttribute('data-color');
+        if (!target || !color) return;
 
-    const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironGoldMat);
-    lLeg.position.set(-0.16, -0.62, 0);
-    group.add(lLeg);
+        const changes = {};
+        if (target === 'primary') changes.primaryColor = color;
+        else if (target === 'secondary') changes.secondaryColor = color;
+        else if (target === 'energy') changes.energyColor = color;
 
-    const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironGoldMat);
-    rLeg.position.set(0.16, -0.62, 0);
-    group.add(rLeg);
+        applyToActiveHero(changes);
+      });
+    });
 
-    scene.add(group);
-    return { mesh: group, head: headGroup };
+    // Option Cards (Symbols, Headgear, Accessories)
+    const customCards = document.querySelectorAll('.custom-card');
+    customCards.forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const sym = card.getAttribute('data-symbol');
+        const gear = card.getAttribute('data-headgear');
+        const acc = card.getAttribute('data-accessory');
+
+        if (sym) applyToActiveHero({ symbol: sym });
+        if (gear) applyToActiveHero({ headgear: gear });
+        if (acc) applyToActiveHero({ accessory: acc });
+      });
+    });
+
+    // Randomize Button
+    if (btnRandom) {
+      btnRandom.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const palettePrimary = ['#e11d48', '#1d4ed8', '#00f0ff', '#0f172a', '#f8fafc', '#10b981', '#f59e0b', '#8b5cf6', '#ea580c'];
+        const paletteSecondary = ['#1d4ed8', '#e11d48', '#f59e0b', '#94a3b8', '#00f0ff', '#334155', '#84cc16', '#0f172a'];
+        const paletteEnergy = ['#00f0ff', '#ff0055', '#00ff88', '#ffe600', '#c084fc', '#ffffff'];
+        const symbols = ['sr', 'arc', 'star', 'lightning', 'skull', 'biohazard', 'clean'];
+        const headgears = ['classic_horns', 'cyber_horns', 'visor', 'samurai', 'headset', 'cowl'];
+        const accessories = ['none', 'jetpack', 'cape', 'pauldrons', 'bandolier', 'holo_wings'];
+
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        applyToActiveHero({
+          primaryColor: pick(palettePrimary),
+          secondaryColor: pick(paletteSecondary),
+          energyColor: pick(paletteEnergy),
+          symbol: pick(symbols),
+          headgear: pick(headgears),
+          accessory: pick(accessories)
+        });
+      });
+    }
+
+    // Default Reset Button
+    if (btnReset) {
+      btnReset.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const { activeHeroKey } = getActiveTargets();
+        const def = HERO_DEFAULT_CUSTOMIZATION[activeHeroKey] || HERO_DEFAULT_CUSTOMIZATION.spider_ram;
+        applyToActiveHero(Object.assign({}, def));
+      });
+    }
+  }
+
+  updateSuitLabUI() {
+    const mainMenu = document.getElementById('main-menu');
+    const isMenuVisible = mainMenu && mainMenu.style.display !== 'none';
+    const activeHeroKey = isMenuVisible ? (this.selectedHero || 'spider_ram') : this.player.characterType;
+    const previewPlayer = this.previewHeroes ? this.previewHeroes[activeHeroKey]?.player : null;
+    const cust = (previewPlayer && previewPlayer.customization) || this.player.customization || HERO_DEFAULT_CUSTOMIZATION[activeHeroKey] || HERO_DEFAULT_CUSTOMIZATION.spider_ram;
+
+    // Subtitle badge
+    const badge = document.querySelector('.suit-lab-badge');
+    if (badge) {
+      badge.textContent = `★ ${activeHeroKey === 'iron_ram' ? 'IRON-RAM EXO-ARMOR' : 'SPIDER-RAM SUIT'} ★`;
+    }
+
+    // Update color swatches
+    const swatches = document.querySelectorAll('.color-swatch');
+    swatches.forEach(swatch => {
+      const target = swatch.getAttribute('data-type') || swatch.getAttribute('data-color-target');
+      const color = swatch.getAttribute('data-color');
+      if (!target || !color) return;
+
+      let isMatch = false;
+      if (target === 'primary') isMatch = (color.toLowerCase() === (cust.primaryColor || '').toLowerCase());
+      else if (target === 'secondary') isMatch = (color.toLowerCase() === (cust.secondaryColor || '').toLowerCase());
+      else if (target === 'energy') isMatch = (color.toLowerCase() === (cust.energyColor || '').toLowerCase());
+
+      swatch.classList.toggle('active', isMatch);
+      if (isMatch) {
+        const title = swatch.getAttribute('title');
+        if (title) {
+          const lbl = document.getElementById(`label-${target}-color`);
+          if (lbl) lbl.textContent = title.toUpperCase();
+        }
+      }
+    });
+
+    // Update option cards (Symbols, Headgear, Accessories)
+    const customCards = document.querySelectorAll('.custom-card');
+    customCards.forEach(card => {
+      const sym = card.getAttribute('data-symbol');
+      const gear = card.getAttribute('data-headgear');
+      const acc = card.getAttribute('data-accessory');
+
+      if (sym) {
+        card.classList.toggle('active', sym === (cust.symbol || cust.emblem));
+      } else if (gear) {
+        card.classList.toggle('active', gear === cust.headgear);
+      } else if (acc) {
+        card.classList.toggle('active', acc === cust.accessory);
+      }
+    });
   }
 
   updateHeroPreview(dt) {

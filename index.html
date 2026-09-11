@@ -100,6 +100,10 @@
           <span class="tactical-btn-icon">🎥</span>
           <span id="radar-cam-text">3RD VIEW</span>
         </button>
+        <button id="hud-suit-lab-btn" class="tactical-action-btn" title="Open Custom Hero Suit Lab">
+          <span class="tactical-btn-icon">🎨</span>
+          <span>SUIT LAB</span>
+        </button>
         <button id="toggle-audio-btn" class="tactical-action-btn" title="Toggle Synth Sound & Music">
           <span class="tactical-btn-icon">🔊</span>
           <span id="radar-audio-text">SOUND: ON</span>
@@ -242,6 +246,13 @@
             <button class="hero-tab locked" title="Coming Soon" data-hero="wonder_wolf">🔒 WONDER-WOLF</button>
           </div>
 
+          <!-- Hero Suit Lab Customizer Button -->
+          <button id="btn-open-suit-lab" class="suit-lab-trigger-btn" title="Customize Armor, Colors, Symbols, Headgear & Accessories">
+            <span class="lab-trigger-icon">⚡</span>
+            <span class="lab-trigger-text">CUSTOM HERO SUIT LAB</span>
+            <span class="lab-trigger-badge">🎨 EDIT</span>
+          </button>
+
           <div class="hero-stats-row">
             <div class="stat-pill"><span class="stat-lbl">SPEED</span> <span class="stat-val">10/10</span></div>
             <div class="stat-pill"><span class="stat-lbl">AGILITY</span> <span class="stat-val">10/10</span></div>
@@ -267,6 +278,7 @@
 
           <div class="menu-btn-stack">
             <button id="start-btn" class="primary-btn menu-btn deploy-hero-btn">▶ PLAY</button>
+            <button id="btn-open-suit-lab-alt" class="secondary-btn menu-btn suit-lab-highlight-btn">🎨 SUIT LAB // CUSTOMIZE</button>
             <button id="achievements-btn" class="secondary-btn menu-btn">🏆 ACHIEVEMENTS & TROPHIES</button>
             <button id="collectibles-btn" class="secondary-btn menu-btn">💎 COLLECTIBLES TRACKER</button>
             <button id="settings-btn" class="secondary-btn menu-btn">⚙️ SETTINGS & AUDIO</button>
@@ -287,6 +299,251 @@
           DRAG ANYWHERE TO INSPECT • READY FOR PATROL
         </div>
       </footer>
+    </div>
+  </div>
+
+  <!-- Floating Cybernetic Suit Lab & Character Creator Drawer -->
+  <div id="suit-lab-drawer" class="suit-lab-drawer" style="display: none; z-index: 115;">
+    <div class="suit-lab-frame">
+      <!-- Suit Lab Header -->
+      <div class="suit-lab-header">
+        <div class="suit-lab-title-col">
+          <div class="suit-lab-badge">★ NOMAD R&D SUIT LAB ★</div>
+          <h2 class="suit-lab-title">HERO CUSTOMIZER</h2>
+        </div>
+        <button id="btn-close-suit-lab" class="suit-lab-close-btn" title="Close Suit Lab">✕</button>
+      </div>
+
+      <!-- Category Nav Tabs -->
+      <div class="suit-lab-nav">
+        <button class="suit-nav-btn active" data-tab="tab-colors">🎨 COLORS</button>
+        <button class="suit-nav-btn" data-tab="tab-symbols">🛡️ SYMBOL</button>
+        <button class="suit-nav-btn" data-tab="tab-headgear">👑 HEADGEAR</button>
+        <button class="suit-nav-btn" data-tab="tab-accessories">🎒 GEAR</button>
+      </div>
+
+      <!-- Scrollable Customizer Content Area -->
+      <div class="suit-lab-content">
+        <!-- 1. COLORS TAB -->
+        <div id="tab-colors" class="suit-tab-pane active">
+          <!-- Primary Suit Color -->
+          <div class="custom-section">
+            <div class="custom-section-header">
+              <span class="custom-sec-title">PRIMARY SUIT COLOR</span>
+              <span id="label-primary-color" class="custom-sec-val">CRIMSON RED</span>
+            </div>
+            <div id="swatches-primary" class="color-swatches-grid">
+              <button class="color-swatch" data-type="primary" data-color="#e11d48" style="--swatch-c: #e11d48;" title="Crimson Red"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="primary" data-color="#1d4ed8" style="--swatch-c: #1d4ed8;" title="Royal Blue"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="primary" data-color="#00f0ff" style="--swatch-c: #00f0ff;" title="Cyber Cyan"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="primary" data-color="#0f172a" style="--swatch-c: #0f172a;" title="Shadow Black"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="primary" data-color="#f8fafc" style="--swatch-c: #f8fafc;" title="Ghost White"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="primary" data-color="#10b981" style="--swatch-c: #10b981;" title="Venom Emerald"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="primary" data-color="#f59e0b" style="--swatch-c: #f59e0b;" title="Golden Nomad"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="primary" data-color="#8b5cf6" style="--swatch-c: #8b5cf6;" title="Void Violet"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="primary" data-color="#ea580c" style="--swatch-c: #ea580c;" title="Magma Orange"><span class="swatch-check">✓</span></button>
+            </div>
+          </div>
+
+          <!-- Secondary Accent / Vest -->
+          <div class="custom-section">
+            <div class="custom-section-header">
+              <span class="custom-sec-title">SECONDARY ACCENT / VEST</span>
+              <span id="label-secondary-color" class="custom-sec-val">ROYAL BLUE</span>
+            </div>
+            <div id="swatches-secondary" class="color-swatches-grid">
+              <button class="color-swatch" data-type="secondary" data-color="#1d4ed8" style="--swatch-c: #1d4ed8;" title="Royal Blue"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="secondary" data-color="#e11d48" style="--swatch-c: #e11d48;" title="Crimson Red"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="secondary" data-color="#f59e0b" style="--swatch-c: #f59e0b;" title="Imperial Gold"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="secondary" data-color="#94a3b8" style="--swatch-c: #94a3b8;" title="Platinum Silver"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="secondary" data-color="#00f0ff" style="--swatch-c: #00f0ff;" title="Cyber Cyan"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="secondary" data-color="#334155" style="--swatch-c: #334155;" title="Carbon Slate"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="secondary" data-color="#84cc16" style="--swatch-c: #84cc16;" title="Neon Lime"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="secondary" data-color="#0f172a" style="--swatch-c: #0f172a;" title="Matte Obsidian"><span class="swatch-check">✓</span></button>
+            </div>
+          </div>
+
+          <!-- Glowing Energy & Visor -->
+          <div class="custom-section">
+            <div class="custom-section-header">
+              <span class="custom-sec-title">GLOWING ENERGY & VISOR</span>
+              <span id="label-energy-color" class="custom-sec-val">CYAN PLASMA</span>
+            </div>
+            <div id="swatches-energy" class="color-swatches-grid">
+              <button class="color-swatch" data-type="energy" data-color="#00f0ff" style="--swatch-c: #00f0ff;" title="Cyan Plasma"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="energy" data-color="#ff0055" style="--swatch-c: #ff0055;" title="Ruby Laser"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="energy" data-color="#00ff88" style="--swatch-c: #00ff88;" title="Emerald Beacon"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="energy" data-color="#ffe600" style="--swatch-c: #ffe600;" title="Solar Arc Gold"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="energy" data-color="#c084fc" style="--swatch-c: #c084fc;" title="Void Purple"><span class="swatch-check">✓</span></button>
+              <button class="color-swatch" data-type="energy" data-color="#ffffff" style="--swatch-c: #ffffff;" title="Pure White Flare"><span class="swatch-check">✓</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. SYMBOLS TAB -->
+        <div id="tab-symbols" class="suit-tab-pane">
+          <div class="custom-options-grid" id="symbols-grid">
+            <button class="custom-card" data-symbol="sr">
+              <span class="custom-card-icon">🕷️</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">SPIDER-RAM</span>
+                <span class="custom-card-desc">Classic bold monogram insignia</span>
+              </div>
+            </button>
+            <button class="custom-card" data-symbol="arc">
+              <span class="custom-card-icon">⚛️</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">ARC REACTOR</span>
+                <span class="custom-card-desc">High-output cybernetic turbine</span>
+              </div>
+            </button>
+            <button class="custom-card" data-symbol="star">
+              <span class="custom-card-icon">⭐</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">NOMAD CREST</span>
+                <span class="custom-card-desc">5-point military commander star</span>
+              </div>
+            </button>
+            <button class="custom-card" data-symbol="lightning">
+              <span class="custom-card-icon">⚡</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">LIGHTNING BOLT</span>
+                <span class="custom-card-desc">High-voltage shock strike emblem</span>
+              </div>
+            </button>
+            <button class="custom-card" data-symbol="skull">
+              <span class="custom-card-icon">💀</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">CYBER SKULL</span>
+                <span class="custom-card-desc">Syndicate operative mask insignia</span>
+              </div>
+            </button>
+            <button class="custom-card" data-symbol="biohazard">
+              <span class="custom-card-icon">☣️</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">BIOHAZARD</span>
+                <span class="custom-card-desc">Toxic chemical radiation crest</span>
+              </div>
+            </button>
+            <button class="custom-card" data-symbol="clean">
+              <span class="custom-card-icon">🛡️</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">CLEAN PLATE</span>
+                <span class="custom-card-desc">Minimalist faceted cyber armor</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. HEADGEAR TAB -->
+        <div id="tab-headgear" class="suit-tab-pane">
+          <div class="custom-options-grid" id="headgear-grid">
+            <button class="custom-card" data-headgear="classic_horns">
+              <span class="custom-card-icon">🐏</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">CLASSIC BIGHORN</span>
+                <span class="custom-card-desc">Curved bighorn textured ram horns</span>
+              </div>
+            </button>
+            <button class="custom-card" data-headgear="cyber_horns">
+              <span class="custom-card-icon">🦾</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">CYBER BLOCK HORNS</span>
+                <span class="custom-card-desc">Chiseled heavy gold thruster blocks</span>
+              </div>
+            </button>
+            <button class="custom-card" data-headgear="visor">
+              <span class="custom-card-icon">🥽</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">CYCLOPS HUD VISOR</span>
+                <span class="custom-card-desc">Tactical holographic eye visor strip</span>
+              </div>
+            </button>
+            <button class="custom-card" data-headgear="samurai">
+              <span class="custom-card-icon">👹</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">SAMURAI ONI CREST</span>
+                <span class="custom-card-desc">Dual sweeping horns & forehead crest</span>
+              </div>
+            </button>
+            <button class="custom-card" data-headgear="headset">
+              <span class="custom-card-icon">🎧</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">COMMS HEADSET</span>
+                <span class="custom-card-desc">Tactical radio antenna & ear cups</span>
+              </div>
+            </button>
+            <button class="custom-card" data-headgear="cowl">
+              <span class="custom-card-icon">🥷</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">STEALTH COWL</span>
+                <span class="custom-card-desc">Hornless aerodynamic ninja cowl</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. ACCESSORIES TAB -->
+        <div id="tab-accessories" class="suit-tab-pane">
+          <div class="custom-options-grid" id="accessories-grid">
+            <button class="custom-card" data-accessory="none">
+              <span class="custom-card-icon">🥋</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">AGILE SUIT</span>
+                <span class="custom-card-desc">Streamlined lightweight chassis</span>
+              </div>
+            </button>
+            <button class="custom-card" data-accessory="jetpack">
+              <span class="custom-card-icon">🚀</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">CYBER JETPACK</span>
+                <span class="custom-card-desc">Twin chrome thruster pods with flames</span>
+              </div>
+            </button>
+            <button class="custom-card" data-accessory="cape">
+              <span class="custom-card-icon">🦸</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">HERO CAPE</span>
+                <span class="custom-card-desc">Flowing nanotech superhero cape</span>
+              </div>
+            </button>
+            <button class="custom-card" data-accessory="pauldrons">
+              <span class="custom-card-icon">🛡️</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">ARMORED PAULDRONS</span>
+                <span class="custom-card-desc">Heavy shoulder guards with neon edge</span>
+              </div>
+            </button>
+            <button class="custom-card" data-accessory="bandolier">
+              <span class="custom-card-icon">🎖️</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">TACTICAL BANDOLIER</span>
+                <span class="custom-card-desc">Diagonal ammo strap & utility canisters</span>
+              </div>
+            </button>
+            <button class="custom-card" data-accessory="holo_wings">
+              <span class="custom-card-icon">🪽</span>
+              <div class="custom-card-info">
+                <span class="custom-card-title">HOLO WINGS</span>
+                <span class="custom-card-desc">Translucent glowing energy wings</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suit Lab Footer Action Controls -->
+      <div class="suit-lab-footer">
+        <button id="btn-suit-random" class="suit-action-btn random-btn" title="Randomize Appearance">
+          🎲 RANDOMIZE
+        </button>
+        <button id="btn-suit-reset" class="suit-action-btn reset-btn" title="Reset to Hero Default">
+          ↺ DEFAULT
+        </button>
+        <button id="btn-suit-done" class="suit-action-btn apply-btn" title="Apply & Close Lab">
+          ✓ DEPLOY SUIT
+        </button>
+      </div>
     </div>
   </div>
 

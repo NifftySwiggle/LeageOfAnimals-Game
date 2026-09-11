@@ -1,10 +1,204 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
+export const HERO_DEFAULT_CUSTOMIZATION = {
+  spider_ram: {
+    primaryColor: '#e11d48',    // Vibrant superhero red
+    secondaryColor: '#1d4ed8',  // Heroic royal blue
+    energyColor: '#00f0ff',     // Glowing cyan eye slits
+    symbol: 'sr',               // 'sr', 'arc', 'star', 'lightning', 'skull', 'biohazard', 'clean'
+    headgear: 'classic_horns',  // 'classic_horns', 'cyber_horns', 'visor', 'samurai', 'headset', 'cowl'
+    accessory: 'none'           // 'none', 'jetpack', 'cape', 'pauldrons', 'bandolier', 'holo_wings'
+  },
+  iron_ram: {
+    primaryColor: '#991b1b',    // Deep Crimson Exo-Armor
+    secondaryColor: '#f59e0b',  // Heavy Gold Plating
+    energyColor: '#00f0ff',     // Arc Reactor Cyan
+    symbol: 'arc',              // Arc Reactor
+    headgear: 'cyber_horns',    // Chiseled Gold Block Horns
+    accessory: 'jetpack'        // Twin back thruster pods
+  }
+};
+
+export function generateEmblemTexture(symbolType, primaryColor = '#e11d48', secondaryColor = '#1d4ed8', energyColor = '#00f0ff') {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 128, 128);
+
+  const cx = 64;
+  const cy = 64;
+
+  if (symbolType === 'sr') {
+    // Bold Black/Secondary "SR" letters with energy outline
+    ctx.lineWidth = 9;
+    ctx.strokeStyle = energyColor;
+    ctx.font = '900 80px "Impact", "Arial Black", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.strokeText('SR', cx, cy + 2);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.fillText('SR', cx, cy + 2);
+  } else if (symbolType === 'arc') {
+    // Arc Reactor: Outer glow circle, inner turbine segments, glowing core
+    ctx.strokeStyle = energyColor;
+    ctx.lineWidth = 6;
+    ctx.shadowColor = energyColor;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 48, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ffffff';
+    for (let i = 0; i < 8; i++) {
+      const ang = (i * Math.PI) / 4;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(ang) * 24, cy + Math.sin(ang) * 24);
+      ctx.lineTo(cx + Math.cos(ang) * 44, cy + Math.sin(ang) * 44);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = energyColor;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (symbolType === 'star') {
+    // 5-pointed military commander star
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = secondaryColor;
+    ctx.strokeStyle = energyColor;
+    ctx.lineWidth = 6;
+    ctx.shadowColor = energyColor;
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a1 = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+      const x1 = Math.cos(a1) * 46;
+      const y1 = Math.sin(a1) * 46;
+      if (i === 0) ctx.moveTo(x1, y1);
+      else ctx.lineTo(x1, y1);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a1 = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+      const x1 = Math.cos(a1) * 20;
+      const y1 = Math.sin(a1) * 20;
+      if (i === 0) ctx.moveTo(x1, y1);
+      else ctx.lineTo(x1, y1);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  } else if (symbolType === 'lightning') {
+    // Lightning bolt
+    ctx.fillStyle = energyColor;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.shadowColor = energyColor;
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.moveTo(cx + 8, cy - 48);
+    ctx.lineTo(cx - 24, cy - 6);
+    ctx.lineTo(cx + 2, cy - 6);
+    ctx.lineTo(cx - 10, cy + 48);
+    ctx.lineTo(cx + 24, cy + 4);
+    ctx.lineTo(cx - 2, cy + 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  } else if (symbolType === 'skull') {
+    // Stylized cyber skull
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = energyColor;
+    ctx.lineWidth = 4;
+    ctx.shadowColor = energyColor;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(cx, cy - 10, 36, Math.PI * 0.8, Math.PI * 0.2);
+    ctx.lineTo(cx + 18, cy + 34);
+    ctx.lineTo(cx - 18, cy + 34);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = energyColor;
+    ctx.beginPath();
+    ctx.ellipse(cx - 14, cy - 10, 8, 12, 0.2, 0, Math.PI * 2);
+    ctx.ellipse(cx + 14, cy - 10, 8, 12, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + 6);
+    ctx.lineTo(cx - 5, cy + 18);
+    ctx.lineTo(cx + 5, cy + 18);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 12, cy + 26, 8, 6);
+    ctx.strokeRect(cx + 4, cy + 26, 8, 6);
+  } else if (symbolType === 'biohazard') {
+    // 3-ring biohazard
+    ctx.strokeStyle = energyColor;
+    ctx.lineWidth = 6;
+    ctx.shadowColor = energyColor;
+    ctx.shadowBlur = 10;
+    for (let i = 0; i < 3; i++) {
+      const ang = (i * 2 * Math.PI) / 3 - Math.PI / 2;
+      const bx = cx + Math.cos(ang) * 22;
+      const by = cy + Math.sin(ang) * 22;
+      ctx.beginPath();
+      ctx.arc(bx, by, 22, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Clean / Minimalist: Cyber faceted shield plate
+    ctx.strokeStyle = energyColor;
+    ctx.lineWidth = 5;
+    ctx.fillStyle = secondaryColor;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 40);
+    ctx.lineTo(cx + 36, cy - 20);
+    ctx.lineTo(cx + 28, cy + 24);
+    ctx.lineTo(cx, cy + 44);
+    ctx.lineTo(cx - 28, cy + 24);
+    ctx.lineTo(cx - 36, cy - 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.magFilter = THREE.LinearFilter;
+  return tex;
+}
+
 export class Player {
   constructor(scene, audioSystem, characterType = 'spider_ram') {
     this.scene = scene;
     this.audio = audioSystem;
     this.characterType = characterType;
+
+    // Customization state
+    this.customization = this.loadCustomization();
 
     // Movement & Physics state
     this.position = new THREE.Vector3(0, 30, 20); // Start on mid rooftop
@@ -69,9 +263,34 @@ export class Player {
     this.scene.add(this.mesh);
   }
 
+  // Load custom hero appearance from localStorage or hero defaults
+  loadCustomization() {
+    try {
+      const saved = localStorage.getItem(`loa_customization_${this.characterType}`);
+      if (saved) {
+        return Object.assign({}, HERO_DEFAULT_CUSTOMIZATION[this.characterType], JSON.parse(saved));
+      }
+    } catch (e) {}
+    return Object.assign({}, HERO_DEFAULT_CUSTOMIZATION[this.characterType] || HERO_DEFAULT_CUSTOMIZATION.spider_ram);
+  }
+
+  saveCustomization() {
+    try {
+      localStorage.setItem(`loa_customization_${this.characterType}`, JSON.stringify(this.customization));
+    } catch (e) {}
+  }
+
+  applyCustomization(customData) {
+    if (!customData) return;
+    this.customization = Object.assign(this.customization, customData);
+    this.saveCustomization();
+    this.buildCharacterMesh();
+  }
+
   // Switch character model and abilities on the fly
   setCharacterType(type) {
     this.characterType = type;
+    this.customization = this.loadCustomization();
     this.maxHealth = this.characterType === 'iron_ram' ? 150 : 100;
     this.health = this.maxHealth;
     this.webFluid = 100;
@@ -95,40 +314,191 @@ export class Player {
     }
   }
 
-  // Create stylized Spider-Ram Hero with royal blue suit, curved horns, fleece accents, and "SR" emblem
+  // Helper to build modular headgear attachments
+  buildHeadgear(headGroup, headgearType, primaryMat, secondaryMat, energyMat) {
+    if (!headgearType || headgearType === 'classic_horns') {
+      // Classic curved organic ram horns + ears
+      [-1, 1].forEach(side => {
+        const hornGeo = new THREE.BoxGeometry(0.18, 0.38, 0.18);
+        const hornMesh = new THREE.Mesh(hornGeo, secondaryMat);
+        hornMesh.position.set(side * 0.28, 0.24, 0.02);
+        hornMesh.rotation.set(-0.35, side * 0.20, side * 0.38);
+        hornMesh.castShadow = true;
+        headGroup.add(hornMesh);
+
+        const ear = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.14), primaryMat);
+        ear.position.set(side * 0.27, 0.05, -0.09);
+        ear.rotation.y = side * 0.7;
+        ear.rotation.z = side * -0.3;
+        headGroup.add(ear);
+      });
+    } else if (headgearType === 'cyber_horns') {
+      // Heavy Chiseled Block Horns with Glowing Energy Vents
+      [-1, 1].forEach(side => {
+        const hBase = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.36, 0.18), secondaryMat);
+        hBase.position.set(side * 0.29, 0.26, 0.02);
+        hBase.rotation.set(-0.35, side * 0.20, side * 0.38);
+        headGroup.add(hBase);
+
+        const hTip = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.12), energyMat);
+        hTip.position.set(side * 0.38, 0.44, -0.04);
+        hTip.rotation.set(-0.35, side * 0.20, side * 0.38);
+        headGroup.add(hTip);
+      });
+    } else if (headgearType === 'visor') {
+      // High-Tech Holographic Cyclops Visor
+      const visorGeo = new THREE.BoxGeometry(0.44, 0.12, 0.10);
+      const visorMesh = new THREE.Mesh(visorGeo, energyMat);
+      visorMesh.position.set(0, 0.08, 0.26);
+      headGroup.add(visorMesh);
+
+      [-1, 1].forEach(side => {
+        const mount = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 8), secondaryMat);
+        mount.rotation.z = Math.PI / 2;
+        mount.position.set(side * 0.26, 0.08, 0.15);
+        headGroup.add(mount);
+      });
+    } else if (headgearType === 'samurai') {
+      // Dual Upward Sweeping Oni Horns & Forehead Diamond Crest
+      [-1, 1].forEach(side => {
+        const hornGeo = new THREE.ConeGeometry(0.09, 0.52, 5);
+        const horn = new THREE.Mesh(hornGeo, secondaryMat);
+        horn.position.set(side * 0.20, 0.42, 0.08);
+        horn.rotation.set(0.2, side * -0.15, side * 0.35);
+        headGroup.add(horn);
+      });
+      const crest = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.06), energyMat);
+      crest.position.set(0, 0.24, 0.26);
+      crest.rotation.z = Math.PI / 4;
+      headGroup.add(crest);
+    } else if (headgearType === 'headset') {
+      // Tactical Comms Headset with Glowing Antenna
+      const band = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.05, 0.12), secondaryMat);
+      band.position.set(0, 0.25, 0);
+      headGroup.add(band);
+
+      [-1, 1].forEach(side => {
+        const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.06, 12), secondaryMat);
+        cup.rotation.z = Math.PI / 2;
+        cup.position.set(side * 0.26, 0.04, 0);
+        headGroup.add(cup);
+      });
+
+      const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.38, 6), secondaryMat);
+      ant.position.set(0.28, 0.22, -0.05);
+      ant.rotation.z = -0.3;
+      headGroup.add(ant);
+      const antTip = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), energyMat);
+      antTip.position.set(0.34, 0.42, -0.05);
+      headGroup.add(antTip);
+    } else if (headgearType === 'cowl') {
+      // Sleek Stealth Mask / Ninja Fin (Hornless)
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.16, 0.36), secondaryMat);
+      fin.position.set(0, 0.26, -0.04);
+      fin.rotation.x = -0.15;
+      headGroup.add(fin);
+    }
+  }
+
+  // Helper to build modular back & shoulder accessories
+  buildAccessory(torsoGroup, accessoryType, primaryMat, secondaryMat, energyMat) {
+    if (!accessoryType || accessoryType === 'none') return;
+
+    if (accessoryType === 'jetpack') {
+      // Twin Chrome Thruster Pods with Glowing Energy Nozzles
+      [-1, 1].forEach(side => {
+        const jetPod = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.10, 0.50, 12), secondaryMat);
+        jetPod.position.set(side * 0.22, 0.32, -0.32);
+        torsoGroup.add(jetPod);
+
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.12, 12), energyMat);
+        cone.position.set(side * 0.22, 0.03, -0.32);
+        cone.rotation.x = Math.PI;
+        torsoGroup.add(cone);
+      });
+      const jBracket = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.22, 0.10), primaryMat);
+      jBracket.position.set(0, 0.32, -0.28);
+      torsoGroup.add(jBracket);
+    } else if (accessoryType === 'cape') {
+      // Classic Superhero Cape draped from shoulders
+      const capeGeo = new THREE.BoxGeometry(0.68, 0.85, 0.04);
+      const cape = new THREE.Mesh(capeGeo, primaryMat);
+      cape.position.set(0, -0.05, -0.28);
+      cape.rotation.x = 0.12;
+      torsoGroup.add(cape);
+
+      [-1, 1].forEach(side => {
+        const clip = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), secondaryMat);
+        clip.position.set(side * 0.26, 0.52, -0.24);
+        torsoGroup.add(clip);
+      });
+    } else if (accessoryType === 'pauldrons') {
+      // Heavy Armored Shoulder Guard Plates with Neon Strip
+      [-1, 1].forEach(side => {
+        const pauldGeo = new THREE.BoxGeometry(0.28, 0.16, 0.28);
+        const pauld = new THREE.Mesh(pauldGeo, secondaryMat);
+        pauld.position.set(side * 0.52, 0.54, 0);
+        pauld.rotation.z = side * -0.25;
+        torsoGroup.add(pauld);
+
+        const strip = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.04, 0.26), energyMat);
+        strip.position.set(side * 0.52, 0.60, 0);
+        strip.rotation.z = side * -0.25;
+        torsoGroup.add(strip);
+      });
+    } else if (accessoryType === 'bandolier') {
+      // Diagonal Tactical Ammo/Gadget Strap across chest
+      const strapGeo = new THREE.BoxGeometry(0.12, 0.85, 0.52);
+      const strap = new THREE.Mesh(strapGeo, secondaryMat);
+      strap.position.set(0, 0.28, 0);
+      strap.rotation.z = 0.58;
+      torsoGroup.add(strap);
+
+      [-0.18, 0, 0.18].forEach(offset => {
+        const pouch = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.12, 8), energyMat);
+        pouch.rotation.z = Math.PI / 2;
+        pouch.position.set(offset * 0.9, 0.28 - offset * 0.5, 0.26);
+        torsoGroup.add(pouch);
+      });
+    } else if (accessoryType === 'holo_wings') {
+      // Translucent Glowing Holographic Wings
+      [-1, 1].forEach(side => {
+        const wingGeo = new THREE.BoxGeometry(0.55, 0.25, 0.02);
+        const wingMat = new THREE.MeshStandardMaterial({
+          color: energyMat.color,
+          emissive: energyMat.color,
+          emissiveIntensity: 2.8,
+          transparent: true,
+          opacity: 0.85
+        });
+        const wing = new THREE.Mesh(wingGeo, wingMat);
+        wing.position.set(side * 0.44, 0.40, -0.30);
+        wing.rotation.set(0.15, side * 0.35, side * 0.42);
+        torsoGroup.add(wing);
+      });
+    }
+  }
+
+  // Create stylized Spider-Ram Hero with custom suit colors, horns, and emblem
   createPixelSpiderMesh() {
-    const redMat = new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.38 }); // Vibrant superhero red
-    const blueMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.4 }); // Heroic royal blue
+    const pColor = this.customization.primaryColor || '#e11d48';
+    const sColor = this.customization.secondaryColor || '#1d4ed8';
+    const eColor = this.customization.energyColor || '#00f0ff';
+
+    const primaryMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(pColor), roughness: 0.38 }); // Primary suit color
+    const secondaryMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(sColor), roughness: 0.4 }); // Accent/vest color
     const fleeceMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.8 }); // Ram fleece wool
-    const hornMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6, metalness: 0.2 }); // Dark slate ram horn
-    const hornGoldMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.45, metalness: 0.35 }); // Horn ridge gold
     const hoofMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 }); // Dark ram hooves
-    const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.8 });
+    const eyeMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(eColor),
+      emissive: new THREE.Color(eColor),
+      emissiveIntensity: 2.2
+    });
 
-    // Clean "SR" (Spider-Ram) Chest Emblem Canvas Texture
-    const srCanvas = document.createElement('canvas');
-    srCanvas.width = 128;
-    srCanvas.height = 128;
-    const srCtx = srCanvas.getContext('2d');
-    srCtx.clearRect(0, 0, 128, 128);
-
-    // Bold Black "SR" letters with subtle white outline
-    srCtx.lineWidth = 7;
-    srCtx.strokeStyle = '#ffffff';
-    srCtx.font = '900 82px "Impact", "Arial Black", sans-serif';
-    srCtx.textAlign = 'center';
-    srCtx.textBaseline = 'middle';
-    srCtx.strokeText('SR', 64, 66);
-
-    srCtx.fillStyle = '#000000';
-    srCtx.fillText('SR', 64, 66);
-
-    const srTex = new THREE.CanvasTexture(srCanvas);
-    srTex.magFilter = THREE.LinearFilter;
-
-    const srMat = new THREE.MeshBasicMaterial({
-      map: srTex,
+    // Dynamic Emblem Texture for Chest
+    const emblemTex = generateEmblemTexture(this.customization.symbol || 'sr', pColor, sColor, eColor);
+    const emblemMat = new THREE.MeshBasicMaterial({
+      map: emblemTex,
       transparent: true,
       depthWrite: false
     });
@@ -136,23 +506,26 @@ export class Player {
     // Root Group
     this.mesh.position.copy(this.position);
 
-    // Torso (Upper Blue Hero Vest, Lower Red Superhero Shorts)
+    // Torso (Upper Hero Vest, Lower Superhero Shorts)
     const torsoGroup = new THREE.Group();
     const chestGeo = new THREE.BoxGeometry(0.72, 0.58, 0.48);
-    const chest = new THREE.Mesh(chestGeo, blueMat); // BLUE Chest
+    const chest = new THREE.Mesh(chestGeo, secondaryMat);
     chest.position.set(0, 0.28, 0);
     torsoGroup.add(chest);
 
-    // Clean Black "SR" Emblem on chest
+    // Dynamic Emblem Badge on chest
     const srPlaneGeo = new THREE.PlaneGeometry(0.38, 0.38);
-    const spBadge = new THREE.Mesh(srPlaneGeo, srMat);
+    const spBadge = new THREE.Mesh(srPlaneGeo, emblemMat);
     spBadge.position.set(0, 0.28, 0.245);
     torsoGroup.add(spBadge);
 
     const waistGeo = new THREE.BoxGeometry(0.62, 0.34, 0.44);
-    const waist = new THREE.Mesh(waistGeo, redMat); // RED Waist / Shorts
+    const waist = new THREE.Mesh(waistGeo, primaryMat);
     waist.position.set(0, -0.14, 0);
     torsoGroup.add(waist);
+
+    // Modular Back & Shoulder Accessory Attachment
+    this.buildAccessory(torsoGroup, this.customization.accessory, primaryMat, secondaryMat, eyeMat);
 
     torsoGroup.position.set(0, 0, 0);
     this.mesh.add(torsoGroup);
@@ -161,55 +534,41 @@ export class Player {
     this.limbs.spBadge = spBadge;
     this.limbs.waist = waist;
 
-    // Head with Sleek Superhero Mask, White Glowing Eyes & Bighorn Ram Horns
+    // Head with Sleek Superhero Mask
     const headGroup = new THREE.Group();
     const headGeo = new THREE.BoxGeometry(0.48, 0.46, 0.48);
-    const head = new THREE.Mesh(headGeo, blueMat); // BLUE Superhero Head
+    const head = new THREE.Mesh(headGeo, secondaryMat);
     headGroup.add(head);
 
-    // Solid Stylized 3D Block Horns (One solid cube per side)
-    [-1, 1].forEach(side => {
-      // 1. One Solid Cube Horn
-      const hornGeo = new THREE.BoxGeometry(0.18, 0.38, 0.18);
-      const hornMesh = new THREE.Mesh(hornGeo, hornMat);
-      hornMesh.position.set(side * 0.28, 0.24, 0.02);
-      hornMesh.rotation.set(-0.35, side * 0.20, side * 0.38);
-      hornMesh.castShadow = true;
-      headGroup.add(hornMesh);
+    // Modular Headgear Attachment
+    this.buildHeadgear(headGroup, this.customization.headgear, primaryMat, secondaryMat, eyeMat);
 
-      // 2. Pointed Ram Ears
-      const ear = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.14), blueMat);
-      ear.position.set(side * 0.27, 0.05, -0.09);
-      ear.rotation.y = side * 0.7;
-      ear.rotation.z = side * -0.3;
-      headGroup.add(ear);
-    });
+    // Standard eye lenses if not overridden by full visor headgear
+    if (this.customization.headgear !== 'visor') {
+      const leftEye = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.09, 0.05), eyeMat);
+      leftEye.position.set(-0.13, 0.08, 0.25);
+      leftEye.rotation.z = 0.22;
+      headGroup.add(leftEye);
 
-    // 3. Expressive Superhero Eye Lenses
-    const leftEye = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.09, 0.05), eyeMat);
-    leftEye.position.set(-0.13, 0.08, 0.25);
-    leftEye.rotation.z = 0.22;
-    headGroup.add(leftEye);
-
-    const rightEye = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.09, 0.05), eyeMat);
-    rightEye.position.set(0.13, 0.08, 0.25);
-    rightEye.rotation.z = -0.22;
-    headGroup.add(rightEye);
+      const rightEye = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.09, 0.05), eyeMat);
+      rightEye.position.set(0.13, 0.08, 0.25);
+      rightEye.rotation.z = -0.22;
+      headGroup.add(rightEye);
+    }
 
     headGroup.position.set(0, 0.6, 0);
     torsoGroup.add(headGroup);
     this.limbs.head = headGroup;
 
-    // Left Arm (Blue upper arm sleeve, Fleece forearm & Dark Ram Hoof)
+    // Left Arm (Secondary upper arm sleeve, Fleece forearm & Dark Ram Hoof)
     const leftArm = new THREE.Group();
     leftArm.position.set(-0.5, 0.38, 0);
-    const lUpperArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.22), blueMat); // BLUE sleeve
+    const lUpperArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.22), secondaryMat);
     lUpperArm.position.set(0, -0.21, 0);
-    const lForeArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.32, 0.2), fleeceMat); // FLEECE forearm
+    const lForeArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.32, 0.2), fleeceMat);
     lForeArm.position.set(0, -0.50, 0);
-    const lHoof = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.18), hoofMat); // RAM HOOF
+    const lHoof = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.18), hoofMat);
     lHoof.position.set(0, -0.68, 0);
-    // Left Hand / Web Shooter Node
     const leftHand = new THREE.Group();
     leftHand.position.set(0, -0.72, 0.05);
 
@@ -221,17 +580,15 @@ export class Player {
     this.limbs.leftArm = leftArm;
     this.limbs.leftHand = leftHand;
 
-    // Right Arm (Blue upper arm sleeve, Fleece forearm & Dark Ram Hoof - Symmetrical)
+    // Right Arm (Symmetrical)
     const rightArm = new THREE.Group();
     rightArm.position.set(0.5, 0.38, 0);
-    const rUpperArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.22), blueMat); // BLUE sleeve
+    const rUpperArm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.22), secondaryMat);
     rUpperArm.position.set(0, -0.21, 0);
-    const rForeArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.32, 0.2), fleeceMat); // FLEECE forearm
+    const rForeArm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.32, 0.2), fleeceMat);
     rForeArm.position.set(0, -0.50, 0);
-    const rHoof = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.18), hoofMat); // RAM HOOF
+    const rHoof = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.16, 0.18), hoofMat);
     rHoof.position.set(0, -0.68, 0);
-
-    // Right Hand / Web Shooter Node
     const rightHand = new THREE.Group();
     rightHand.position.set(0, -0.72, 0.05);
 
@@ -243,12 +600,12 @@ export class Player {
     this.limbs.rightArm = rightArm;
     this.limbs.rightHand = rightHand;
 
-    // Left Leg (Red thigh, Blue boot with Hoof Sole - Natural centered athletic stance)
+    // Left Leg (Primary thigh, Secondary boot with Hoof Sole)
     const leftLeg = new THREE.Group();
     leftLeg.position.set(-0.15, -0.31, 0);
-    const lThigh = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.34, 0.26), redMat); // RED Thigh
+    const lThigh = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.34, 0.26), primaryMat);
     lThigh.position.set(0, -0.17, 0);
-    const lBoot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.26, 0.28), blueMat); // BLUE Boot
+    const lBoot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.26, 0.28), secondaryMat);
     lBoot.position.set(0, -0.46, 0);
     const lHoofSole = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.08, 0.30), hoofMat);
     lHoofSole.position.set(0, -0.60, 0);
@@ -258,12 +615,12 @@ export class Player {
     torsoGroup.add(leftLeg);
     this.limbs.leftLeg = leftLeg;
 
-    // Right Leg (Red thigh, Blue boot with Hoof Sole - Natural centered athletic stance)
+    // Right Leg (Primary thigh, Secondary boot with Hoof Sole)
     const rightLeg = new THREE.Group();
     rightLeg.position.set(0.15, -0.31, 0);
-    const rThigh = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.34, 0.26), redMat); // RED Thigh
+    const rThigh = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.34, 0.26), primaryMat);
     rThigh.position.set(0, -0.17, 0);
-    const rBoot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.26, 0.28), blueMat); // BLUE Boot
+    const rBoot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.26, 0.28), secondaryMat);
     rBoot.position.set(0, -0.46, 0);
     const rHoofSole = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.08, 0.30), hoofMat);
     rHoofSole.position.set(0, -0.60, 0);
@@ -274,21 +631,25 @@ export class Player {
     this.limbs.rightLeg = rightLeg;
   }
 
-  // Create High-Tech Armored Iron-Ram Character Mesh with Arc Reactor, Gold Horns & Repulsor Ports
+  // Create High-Tech Armored Iron-Ram Character Mesh with Custom Armor & Repulsor Ports
   createIronRamPlayerMesh() {
-    const ironRedMat = new THREE.MeshStandardMaterial({
-      color: 0x991b1b, // Deep Crimson Exo-Armor
+    const pColor = this.customization.primaryColor || '#991b1b';
+    const sColor = this.customization.secondaryColor || '#f59e0b';
+    const eColor = this.customization.energyColor || '#00f0ff';
+
+    const ironPrimaryMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(pColor),
       roughness: 0.28,
       metalness: 0.8
     });
-    const ironGoldMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b, // Heavy Gold Plating
+    const ironSecondaryMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(sColor),
       roughness: 0.2,
       metalness: 0.9
     });
     const arcCoreMat = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff,
-      emissive: 0x00f0ff,
+      color: new THREE.Color(eColor),
+      emissive: new THREE.Color(eColor),
       emissiveIntensity: 3.5,
       roughness: 0.1
     });
@@ -302,19 +663,28 @@ export class Player {
 
     // Torso Group
     const torsoGroup = new THREE.Group();
-    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.60, 0.52), ironRedMat);
+    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.60, 0.52), ironPrimaryMat);
     chest.position.set(0, 0.28, 0);
     torsoGroup.add(chest);
 
-    // Glowing Cyan Arc Reactor Core
-    const arcGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.04, 16);
-    const arcCore = new THREE.Mesh(arcGeo, arcCoreMat);
-    arcCore.rotation.x = Math.PI / 2;
-    arcCore.position.set(0, 0.32, 0.28);
-    torsoGroup.add(arcCore);
+    // Chest Symbol: 3D Arc Reactor Cylinder or 2D Dynamic Emblem Badge
+    let arcCore;
+    if (!this.customization.symbol || this.customization.symbol === 'arc') {
+      const arcGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.04, 16);
+      arcCore = new THREE.Mesh(arcGeo, arcCoreMat);
+      arcCore.rotation.x = Math.PI / 2;
+      arcCore.position.set(0, 0.32, 0.28);
+      torsoGroup.add(arcCore);
+    } else {
+      const emblemTex = generateEmblemTexture(this.customization.symbol, pColor, sColor, eColor);
+      const emblemMat = new THREE.MeshBasicMaterial({ map: emblemTex, transparent: true, depthWrite: false });
+      arcCore = new THREE.Mesh(new THREE.PlaneGeometry(0.38, 0.38), emblemMat);
+      arcCore.position.set(0, 0.30, 0.27);
+      torsoGroup.add(arcCore);
+    }
 
-    // Gold Chest Collar Plate
-    const collar = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.14, 0.54), ironGoldMat);
+    // Collar Plate
+    const collar = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.14, 0.54), ironSecondaryMat);
     collar.position.set(0, 0.52, 0);
     torsoGroup.add(collar);
 
@@ -323,6 +693,9 @@ export class Player {
     waist.position.set(0, -0.14, 0);
     torsoGroup.add(waist);
 
+    // Modular Back & Shoulder Accessory
+    this.buildAccessory(torsoGroup, this.customization.accessory, ironPrimaryMat, ironSecondaryMat, arcCoreMat);
+
     torsoGroup.position.set(0, 0, 0);
     this.mesh.add(torsoGroup);
     this.limbs.torso = torsoGroup;
@@ -330,33 +703,29 @@ export class Player {
     this.limbs.arcCore = arcCore;
     this.limbs.waist = waist;
 
-    // Head Group with Gold Block Horns & Cyan Visor
+    // Head Group with Face Mask Plate
     const headGroup = new THREE.Group();
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.48, 0.50), ironRedMat);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.48, 0.50), ironPrimaryMat);
     headGroup.add(head);
 
-    // Gold Face Mask Plate
-    const facePlate = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.36, 0.06), ironGoldMat);
+    // Face Mask Plate
+    const facePlate = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.36, 0.06), ironSecondaryMat);
     facePlate.position.set(0, -0.02, 0.26);
     headGroup.add(facePlate);
 
-    // Glowing Cyan Visor Eyes
-    const eyeGeo = new THREE.BoxGeometry(0.12, 0.05, 0.05);
-    const lEye = new THREE.Mesh(eyeGeo, arcCoreMat);
-    lEye.position.set(-0.11, 0.06, 0.29);
-    const rEye = new THREE.Mesh(eyeGeo, arcCoreMat);
-    rEye.position.set(0.11, 0.06, 0.29);
-    headGroup.add(lEye);
-    headGroup.add(rEye);
+    // Modular Headgear
+    this.buildHeadgear(headGroup, this.customization.headgear, ironPrimaryMat, ironSecondaryMat, arcCoreMat);
 
-    // Gold Armored Horns (One solid block cube per side)
-    [-1, 1].forEach(side => {
-      const hornGeo = new THREE.BoxGeometry(0.18, 0.42, 0.18);
-      const horn = new THREE.Mesh(hornGeo, ironGoldMat);
-      horn.position.set(side * 0.29, 0.26, 0.02);
-      horn.rotation.set(-0.35, side * 0.20, side * 0.38);
-      headGroup.add(horn);
-    });
+    // Glowing Visor Eyes (if not full cyclops visor)
+    if (this.customization.headgear !== 'visor') {
+      const eyeGeo = new THREE.BoxGeometry(0.12, 0.05, 0.05);
+      const lEye = new THREE.Mesh(eyeGeo, arcCoreMat);
+      lEye.position.set(-0.11, 0.06, 0.29);
+      const rEye = new THREE.Mesh(eyeGeo, arcCoreMat);
+      rEye.position.set(0.11, 0.06, 0.29);
+      headGroup.add(lEye);
+      headGroup.add(rEye);
+    }
 
     headGroup.position.set(0, 0.6, 0);
     torsoGroup.add(headGroup);
@@ -365,7 +734,7 @@ export class Player {
     // Left Arm with Palm Repulsor Node
     const leftArm = new THREE.Group();
     leftArm.position.set(-0.52, 0.38, 0);
-    const lArmMesh = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.68, 0.24), ironRedMat);
+    const lArmMesh = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.68, 0.24), ironPrimaryMat);
     lArmMesh.position.set(0, -0.34, 0);
     const lRepulsor = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.02, 8), arcCoreMat);
     lRepulsor.rotation.x = Math.PI / 2;
@@ -379,7 +748,7 @@ export class Player {
     // Right Arm with Palm Repulsor Node
     const rightArm = new THREE.Group();
     rightArm.position.set(0.52, 0.38, 0);
-    const rArmMesh = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.68, 0.24), ironRedMat);
+    const rArmMesh = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.68, 0.24), ironPrimaryMat);
     rArmMesh.position.set(0, -0.34, 0);
     const rRepulsor = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.02, 8), arcCoreMat);
     rRepulsor.rotation.x = Math.PI / 2;
@@ -393,7 +762,7 @@ export class Player {
     // Left Leg with Boot Jet Thruster
     const leftLeg = new THREE.Group();
     leftLeg.position.set(-0.16, -0.31, 0);
-    const lLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironGoldMat);
+    const lLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironSecondaryMat);
     lLegMesh.position.set(0, -0.32, 0);
     const lThruster = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.02, 8), arcCoreMat);
     lThruster.position.set(0, -0.64, 0);
@@ -406,7 +775,7 @@ export class Player {
     // Right Leg with Boot Jet Thruster
     const rightLeg = new THREE.Group();
     rightLeg.position.set(0.16, -0.31, 0);
-    const rLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironGoldMat);
+    const rLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.65, 0.28), ironSecondaryMat);
     rLegMesh.position.set(0, -0.32, 0);
     const rThruster = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.02, 8), arcCoreMat);
     rThruster.position.set(0, -0.64, 0);
@@ -414,7 +783,6 @@ export class Player {
     rightLeg.add(rThruster);
     torsoGroup.add(rightLeg);
     this.limbs.rightLeg = rightLeg;
-    this.limbs.rightThruster = rThruster;
   }
 
   // --- IRON-RAM ABILITIES & WEAPONS ---
